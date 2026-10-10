@@ -6,7 +6,7 @@
 
 **Your next ability, on screen, for every class.** A priority helper for World of Warcraft 3.3.5a (AzerothCore servers such as ChromieCraft).
 
-Version 3.3.5-1.2.1 · backport by Saranwrap
+Version 3.3.5-1.2.4 · backport by Saranwrap
 
 > **I am not the original author of this addon.** Hekili is made by **Hekili** and its contributors (https://github.com/Hekili/hekili). This is a backport of its Wrath of the Lich King Classic version to the 3.3.5a client. Please report problems with this version [here](https://github.com/saranwrap04/Hekili/issues), not to Hekili.
 
@@ -90,9 +90,9 @@ Change them in `/hek` → Toggles, with the keys, or from the minimap button (le
 Open them with `/hek`, a right-click on the minimap button, or **Escape → Interface → AddOns → Hekili**. That page also has buttons to move or lock the displays, show or hide the minimap button and turn Hekili on or off.
 
 - **Displays**: size, number of icons, position, keybind text, glow, border, captions, visibility.
-- **Your class**: active priority, priority selector, class options, targeting.
-- **Priorities**: the action lists, which you can edit, import and export.
-- **Abilities / Gear and Items**: turn single abilities or items off, change their toggle, override their keybind text.
+- **Your class**: rotation (or pick it by talents), rotation options, enemy counting.
+- **Priorities**: the rotations themselves, which you can copy, edit, import and export (for advanced users).
+- **Abilities / Gear and Items**: turn one off, limit it to boss fights or to a number of enemies, change its toggle (Cooldowns...) or its keybind text.
 - **Profiles**: one per character or shared, and one per talent group (dual spec).
 
 ---
@@ -105,7 +105,7 @@ Open them with `/hek`, a right-click on the minimap button, or **Escape → Inte
 | `/hek move` · `/hek lock` | Unlock the displays to move them, lock them again |
 | `/hek enable` · `/hek disable` | Turn the addon on or off |
 | `/hek set` | List your class options and toggles, e.g. `/hek set cooldowns on`, `/hek set mode` |
-| `/hek priority` | Show or change the active priority |
+| `/hek priority` | Show or change the rotation |
 | `/hek profile` | Show or change the active profile |
 
 ---
@@ -118,6 +118,7 @@ The 3.3.5 client gives addons less information than the Classic client. What thi
 - **Haste** is your haste rating plus the common haste buffs (Bloodlust / Heroism, Icy Veins, Berserking, Power Infusion, Wrath of Air, Windfury Totem, Improved Icy Talons, Improved Moonkin Form, Swift Retribution, Blade Flurry).
 - **Boss fights** are detected from the boss frames.
 - **Shaman weapon imbues** are read from the weapon tooltip (English client).
+- **Shaman options** (`/hek` > Shaman, or the minimap button menu): Chain Lightning on one enemy (on), Thunderstorm (off) and Fire Nova (on). Without its glyph, Thunderstorm knocks enemies back.
 - Options that only exist on retail (covenants, nameplate detection, SpellFlash) are hidden.
 
 Settings are saved in `WTF\Account\<ACCOUNT>\SavedVariables\Hekili.lua`.
