@@ -2021,26 +2021,10 @@ spec:RegisterStateExpr("should_shield", function()
     and (hammercd < (settings.min_six_delay-settings.max_wait_for_six))
 end)
 
-spec:RegisterSetting("paladin_description", nil, {
-    type = "description",
-    name = "Adjust the settings below according to your playstyle preference. It is always recommended that you use a simulator "..
-        "to determine the optimal values for these settings for your specific character."
-})
-
-spec:RegisterSetting("paladin_description_footer", nil, {
-    type = "description",
-    name = "\n\n"
-})
-
-spec:RegisterSetting("general_header", nil, {
-    type = "header",
-    name = "General"
-})
-
 spec:RegisterSetting("maintain_aura", true, {
     type = "toggle",
-    name = "Maintain Aura",
-    desc = "When enabled, selected aura will be recommended if it is down",
+    name = "Keep Up Your Aura",
+    desc = "If checked, the aura chosen below is recommended when it is missing.",
     width = "full",
     set = function( _, val )
         Hekili.DB.profile.specs[ 2 ].settings.maintain_aura = val
@@ -2050,8 +2034,8 @@ spec:RegisterSetting("maintain_aura", true, {
 local auras = {}
 spec:RegisterSetting( "assigned_aura", "retribution_aura", {
     type = "select",
-    name = "Assigned Aura",
-    desc = "Select the Aura that should be recommended by the addon.  It is referenced as |cff00ccff[Assigned Aura]|r in your priority.",
+    name = "Aura",
+    desc = "The aura to keep up.",
     width = "full",
     values = function()
         table.wipe( auras )
@@ -2074,9 +2058,8 @@ spec:RegisterSetting( "assigned_aura", "retribution_aura", {
 
 spec:RegisterSetting("maintain_blessing", true, {
     type = "toggle",
-    name = "Maintain Aura",
-    desc = "When enabled, selected blessing will be recommended if it is down. Disable this setting if your raid group uses another "..
-        "blessing management tool such as PallyPower.",
+    name = "Keep Up Your Blessing",
+    desc = "If checked, the blessing chosen below is recommended when it is missing. Uncheck if your raid uses a blessing addon such as PallyPower.",
     width = "full",
     set = function( _, val )
         Hekili.DB.profile.specs[ 2 ].settings.maintain_blessing = val
@@ -2086,8 +2069,8 @@ spec:RegisterSetting("maintain_blessing", true, {
 local blessings = {}
 spec:RegisterSetting( "assigned_blessing", "blessing_of_kings", {
     type = "select",
-    name = "Assigned Blessing",
-    desc = "Select the Blessing that should be recommended by the addon.  It is referenced as |cff00ccff[Assigned Blessing]|r in your priority.",
+    name = "Blessing",
+    desc = "The blessing to keep up.",
     width = "full",
     values = function()
         table.wipe( blessings )
@@ -2107,8 +2090,8 @@ spec:RegisterSetting( "assigned_blessing", "blessing_of_kings", {
 
 spec:RegisterSetting("holy_wrath_threshold", 2, {
     type = "range",
-    name = "Holy Wrath Threshold",
-    desc = "Select the minimum number of enemies before holy wrath will be prioritized higher",
+    name = "Holy Wrath: Enemies Needed",
+    desc = "Against Undead and Demons, Holy Wrath is recommended from this many enemies.",
     width = "full",
     min = 0,
     softMax = 10,
@@ -2119,8 +2102,8 @@ spec:RegisterSetting("holy_wrath_threshold", 2, {
 })
 spec:RegisterSetting("primary_slack", 0.5, {
     type = "range",
-    name = "Primary Slack (s)",
-    desc = "Amount of extra time in s to give main abilities to come off CD before using Exo or Cons",
+    name = "Wait for Main Abilities (seconds)",
+    desc = "Retribution: Exorcism, Consecration and Holy Wrath are not used when Crusader Strike, Judgement or Divine Storm is ready within this many seconds.",
     width = "full",
     min = 0,
     softMax = 2,
@@ -2132,8 +2115,8 @@ spec:RegisterSetting("primary_slack", 0.5, {
 
 spec:RegisterSetting("hor_macros", false, {
     type = "toggle",
-    name = "Using HoR Macros",
-    desc = "Enable when using Hand of Reckoning Macros (dont display HoR when using Glyph)",
+    name = "Hand of Reckoning in Macros",
+    desc = "Check if you use Hand of Reckoning through your own macros: it is then not recommended (it is otherwise used with its glyph for damage).",
     width = "single",
     set = function( _, val )
         Hekili.DB.profile.specs[ 2 ].settings.hor_macros = val
@@ -2142,8 +2125,8 @@ spec:RegisterSetting("hor_macros", false, {
 
 spec:RegisterSetting("highroll", false, {
     type = "toggle",
-    name = "T10-Highroll Playstyle",
-    desc = "Enable to prioritize DS, for higher potential damage, but less damage on average",
+    name = "Divine Storm First (Tier 10)",
+    desc = "With the 2-piece Tier 10 bonus: Divine Storm goes first. Higher damage peaks, lower average.",
     width = "single",
     set = function( _, val )
         Hekili.DB.profile.specs[ 2 ].settings.highroll = val
@@ -2152,33 +2135,23 @@ spec:RegisterSetting("highroll", false, {
 
 spec:RegisterSetting("fol_on_aow", false, {
     type = "toggle",
-    name = "Flash of Light on AoW",
-    desc = "Enable to recommend Flash of Light on spare Art of War during Exo CDs",
+    name = "Flash of Light on Art of War",
+    desc = "If checked, a spare Art of War proc is spent on Flash of Light while Exorcism is on cooldown.",
     width = "single",
     set = function( _, val )
         Hekili.DB.profile.specs[ 2 ].settings.fol_on_aow = val
     end
 })
 
-spec:RegisterSetting("general_footer", nil, {
-    type = "description",
-    name = "\n\n\n"
-})
-
 spec:RegisterSetting("mana_regen_header", nil, {
     type = "header",
-    name = "Mana Upkeep"
-})
-
-spec:RegisterSetting("mana_regen_description", nil, {
-    type = "description",
-    name = "Mana Upkeep settings will change mana regeneration related recommendations\n\n"
+    name = "Mana",
 })
 
 spec:RegisterSetting("judgement_of_wisdom_threshold", 70, {
     type = "range",
-    name = "Judgement of Wisdom Threshold",
-    desc = "Select the minimum mana percent at which judgement of wisdom will be recommended",
+    name = "Judgement of Wisdom: Below Mana %",
+    desc = "Judgement of Wisdom is recommended when your mana is below this %. Lower values also let mana-hungry spells (Consecration, Exorcism, Holy Wrath) be used at lower mana.",
     width = "full",
     min = 0,
     max = 100,
@@ -2190,8 +2163,8 @@ spec:RegisterSetting("judgement_of_wisdom_threshold", 70, {
 
 spec:RegisterSetting("divine_plea_threshold", 75, {
     type = "range",
-    name = "Divine Plea Threshold",
-    desc = "Select the minimum mana percent at which divine plea will be recommended",
+    name = "Divine Plea: Below Mana %",
+    desc = "Divine Plea is recommended when your mana is below this %.",
     width = "full",
     min = 0,
     max = 100,
@@ -2201,22 +2174,15 @@ spec:RegisterSetting("divine_plea_threshold", 75, {
     end
 })
 
-spec:RegisterSetting("mana_footer", nil, {
-    type = "description",
-    name = "\n\n\n"
-})
-
 spec:RegisterSetting("protection_header", nil, {
     type = "header",
-    name = "Prot Settings"
+    name = "Protection",
 })
 
 spec:RegisterSetting("max_wait_for_six", 0.3, {
     type = "range",
-    name = "Max Wait for Six",
-    desc = "Max allowed delay to wait for 6s-Casts (SotR, HotR) CD in seconds.\n\n"..
-        "Recommendation:\n - 0.3 seconds\n\n"..
-        "Default: 0.3",
+    name = "Wait for 6-Second Abilities (seconds)",
+    desc = "Protection: how long the rotation can wait for Shield of Righteousness or Hammer of the Righteous to come off cooldown. Default: 0.3.",
     width = "full",
     min = 0,
     softMax = 1,
@@ -2227,10 +2193,8 @@ spec:RegisterSetting("max_wait_for_six", 0.3, {
 })
 spec:RegisterSetting("min_six_delay", 4, {
     type = "range",
-    name = "Min Six Delay",
-    desc = "Min allowed delay to wait between 6s-Casts (SotR, HotR) CD in seconds.\n\n"..
-        "Recommendation:\n - 4 seconds\n\n"..
-        "Default: 4",
+    name = "Gap Between 6-Second Abilities (seconds)",
+    desc = "Protection: the time kept between Shield of Righteousness and Hammer of the Righteous. Default: 4.",
     width = "full",
     min = 0,
     softMax = 6,
@@ -2240,13 +2204,13 @@ spec:RegisterSetting("min_six_delay", 4, {
     end
 })
 
-spec:RegisterSetting("squeeze_hw_in_bl", true, {
+spec:RegisterSetting("squeezeHolyWrath", true, {
     type = "toggle",
-    name = "Use HolyWrath during BL",
-    desc = "Enable to squeeze HW in open partial global after Consecration during bloodlust against Undead/Demon",
+    name = "Holy Wrath During Bloodlust",
+    desc = "Protection, against Undead and Demons: fit Holy Wrath in after Consecration (meant for Bloodlust / Heroism).",
     width = "single",
     set = function( _, val )
-        Hekili.DB.profile.specs[ 2 ].settings.squeeze_hw_in_bl = val
+        Hekili.DB.profile.specs[ 2 ].settings.squeezeHolyWrath = val
     end
 })
 

@@ -5131,10 +5131,8 @@ spec:RegisterOptions( {
 
 spec:RegisterSetting( "spellsteal_cooldown", 0, {
     type = "range",
-    name = strformat( CAPACITANCE_SHIPMENT_COOLDOWN, Hekili:GetSpellLinkWithTexture( spec.abilities.spellsteal.id ) ),
-    desc = strformat( "If set above zero, %s will not be recommended more frequently than the specified timeframe (in seconds).\n\n"
-        .. "This setting can prevent %s from remaining the first recommendation when your enemy has stacking buffs or multiple buffs.",
-        Hekili:GetSpellLinkWithTexture( spec.abilities.spellsteal.id ), spec.abilities.spellsteal.name ),
+    name = "Spellsteal: Seconds Between Uses",
+    desc = "Spellsteal is not recommended again before this many seconds, so it does not stay first when the enemy has several buffs. 0 = no limit.",
     width = "full",
     min = 0,
     max = 15,
@@ -5148,10 +5146,8 @@ end )
 
 spec:RegisterSetting( "living_bomb_cap", 3, {
     type = "range",
-    name = strformat( SPELL_MAX_CHARGES:gsub( "%%d", "%%s"), Hekili:GetSpellLinkWithTexture( spec.abilities.living_bomb.id ) ),
-    desc = strformat( "When target swapping is enabled, %s may be recommended on the specified number of targets.\n\n"
-        .. "This setting can help balance mana expenditure vs. multi-target damage.",
-        Hekili:GetSpellLinkWithTexture( spec.abilities.living_bomb.id ) ),
+    name = "Living Bomb: Max Enemies",
+    desc = "With Recommend Target Swaps on (Targeting), Living Bomb can be kept on up to this many enemies.",
     width = "full",
     min = 1,
     max = 10,
@@ -5165,10 +5161,8 @@ end )
 
 spec:RegisterSetting( "use_cold_snap", false, {
     type = "toggle",
-    name = strformat( "%s %s", USE, Hekili:GetSpellLinkWithTexture( spec.abilities.cold_snap.id ) ),
-    desc = strformat( "If enabled, the default Frost priority %s may recommend to reset the cooldown of %s.",
-        Hekili:GetSpellLinkWithTexture( spec.abilities.cold_snap.id ),
-        Hekili:GetSpellLinkWithTexture( spec.abilities.icy_veins.id ) ),
+    name = "Cold Snap",
+    desc = "If checked, Frost can recommend Cold Snap to reset Icy Veins.",
 } )
 
 spec:RegisterStateExpr( "use_cold_snap", function()

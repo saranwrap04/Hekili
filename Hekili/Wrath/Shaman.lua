@@ -1165,6 +1165,9 @@ spec:RegisterAbilities( {
         startsCombat = true,
         texture = 136015,
 
+        -- Settings: Chain Lightning can be kept for 2+ enemies only.
+        usable = function() return settings.st_chain_lightning or active_enemies > 1, "single-target Chain Lightning turned off in the settings" end,
+
         handler = function ()
             removeBuff( "elemental_mastery" )
             removeBuff( "maelstrom_weapon" )
@@ -1466,6 +1469,8 @@ spec:RegisterAbilities( {
         texture = 135824,
 
         buff = "fire_totem",
+
+        usable = function() return settings.use_fire_nova, "Fire Nova turned off in the settings" end,
 
         handler = function ()
         end,
@@ -2251,6 +2256,8 @@ spec:RegisterAbilities( {
         startsCombat = true,
         texture = 237589,
 
+        usable = function() return settings.use_thunderstorm, "Thunderstorm turned off in the settings" end,
+
         handler = function ()
             gain( 0.08 * mana.max, "mana" )
         end,
@@ -2510,11 +2517,31 @@ spec:RegisterAbilities( {
 } )
 
 
+spec:RegisterSetting( "st_chain_lightning", true, {
+    type = "toggle",
+    name = "Chain Lightning on One Enemy",
+    desc = "If unchecked, Chain Lightning is only recommended when 2 or more enemies are counted.",
+    width = "full",
+} )
+
+spec:RegisterSetting( "use_thunderstorm", false, {
+    type = "toggle",
+    name = "Thunderstorm",
+    desc = "If unchecked, Thunderstorm is never recommended. It gives mana back; without the Glyph of Thunderstorm it also knocks enemies back.",
+    width = "full",
+} )
+
+spec:RegisterSetting( "use_fire_nova", true, {
+    type = "toggle",
+    name = "Fire Nova",
+    desc = "If unchecked, Fire Nova is never recommended.",
+    width = "full",
+} )
+
 spec:RegisterSetting( "st_cl_mana_threshold", 80, {
     type = "range",
-    name = "|TInterface\\icons\\spell_nature_chainlightning:0|t Single-Target Chain Lightning Mana %",
-    desc = "When below the specified mana percentage, the default priority will not recommend |TInterface\\icons\\spell_nature_chainlightning:0|t Chain Lightning in single-target.\n\n"
-        .. "If |TInterface\\icons\\spell_shaman_thunderstorm:0|t Thunderstorm is known, the default priority may recommend using it to regenerate mana below this threshold.",
+    name = "Chain Lightning on One Enemy: Above Mana %",
+    desc = "On one enemy, Chain Lightning is only recommended while your mana is above this %. Below it, Thunderstorm (if checked) can be recommended to get mana back.",
     min = 0,
     max = 100,
     step = 1,
@@ -2523,8 +2550,8 @@ spec:RegisterSetting( "st_cl_mana_threshold", 80, {
 
 spec:RegisterSetting( "st_fn_mana_threshold", 3000, {
     type = "range",
-    name = "Single-Target Fire Nova Mana",
-    desc = "When below the specified mana level, the default priority will not recommend Fire Nova in single-target.",
+    name = "Fire Nova on One Enemy: Above Mana",
+    desc = "On one enemy, Fire Nova is only recommended while you have more than this much mana (a number, not a %).",
     min = 0,
     softMax = 10000,
     step = 100,
@@ -2533,8 +2560,8 @@ spec:RegisterSetting( "st_fn_mana_threshold", 3000, {
 
 spec:RegisterSetting( "shaman_rage_threshold", 60, {
     type = "range",
-    name = "|TInterface\\icons\\spell_nature_shamanrage:0|t Shamanistic Rage Threshold",
-    desc = "When below the specified mana percentage, the addon may recommend using Shamanistic Rage to regenerate mana.\n\nThis setting is ignored when wearing T10_2Pc.",
+    name = "Shamanistic Rage: Below Mana %",
+    desc = "Shamanistic Rage can be recommended to get mana back when your mana is below this %. Ignored with the 2-piece Tier 10 Enhancement bonus.",
     min = 0,
     max = 100,
     step = 1,

@@ -1837,22 +1837,22 @@ spec:RegisterPackSelector( "shadow", "Shadow", "|TInterface\\icons\\spell_shadow
 -- Settings
 spec:RegisterSetting( "dots_in_aoe", false, {
     type = "toggle",
-    name = "|TInterface\\icons\\spell_shadow_devouringplague:0|t|TInterface\\icons\\spell_shadow_shadowwordpain:0|t|TInterface\\icons\\spell_holy_stoicism:0|t Apply DoTs in AOE",
-    desc = "When enabled, the Shadow priority will recommend applying DoTs to your current target in multi-target scenarios before channeling |TInterface\\icons\\spell_shadow_mindshear:0|t Mind Sear.",
+    name = "DoTs Before Mind Sear",
+    desc = "If checked, in AOE your DoTs are put on your target before you channel Mind Sear.",
     width = "full",
 } )
 
 spec:RegisterSetting( "optimize_mind_blast", false, {
     type = "toggle",
-    name = "|TInterface\\icons\\spell_shadow_unholyfrenzy:0|t Mind Blast: Optimize Use",
-    desc = "When enabled, the Shadow priority will only recommend |TInterface\\icons\\spell_shadow_unholyfrenzy:0|t Mind Blast below an internally-calculated haste threshold (vs. using |TInterface\\icons\\spell_shadow_siphonmana:0|t Mind Flay).",
+    name = "Mind Blast Only When Better",
+    desc = "If checked, Mind Blast is only recommended while your haste is low enough for it to beat Mind Flay.",
     width = "full",
 } )
 
 spec:RegisterSetting( "min_shadowfiend_mana", 25, {
     type = "range",
-    name = "|TInterface\\icons\\spell_shadow_shadowfiend:0|t Shadowfiend Mana Threshold",
-    desc = "If set above zero, |TInterface\\icons\\spell_shadow_shadowfiend:0|t Shadowfiend cannot be recommended until your mana falls below this percentage.",
+    name = "Shadowfiend: Below Mana %",
+    desc = "Shadowfiend is only recommended when your mana is below this %. 0 = any time.",
     width = "full",
     min = 0,
     max = 100,

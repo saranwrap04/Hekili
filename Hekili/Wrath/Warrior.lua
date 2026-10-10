@@ -2126,27 +2126,11 @@ spec:RegisterStateExpr("rend_may_tick", function()
     local current_tick = dot.rend.next_tick
 end)
 
-spec:RegisterSetting("warrior_description", nil, {
-    type = "description",
-    name = "Adjust the settings below according to your playstyle preference. It is always recommended that you use a simulator "..
-        "to determine the optimal values for these settings for your specific character."
-})
-
-spec:RegisterSetting("warrior_description_footer", nil, {
-    type = "description",
-    name = "\n\n"
-})
-
-spec:RegisterSetting("general_header", nil, {
-    type = "header",
-    name = "General"
-})
-
 local main_gcd_spell = {}
 spec:RegisterSetting("main_gcd_spell", "slam", {
     type = "select",
-    name = "Main GCD Spell",
-    desc = "Select which ability should be top priority",
+    name = "Main Ability",
+    desc = "The ability put first in the rotation.",
     width = "full",
     values = function()
         table.wipe(main_gcd_spell)
@@ -2164,8 +2148,8 @@ spec:RegisterSetting("main_gcd_spell", "slam", {
 local shout_spells = {}
 spec:RegisterSetting("shout_spell", "commanding_shout", {
     type = "select",
-    name = "Preferred Shout",
-    desc = "Select which shout should be recommended",
+    name = "Shout",
+    desc = "The shout to keep up.",
     width = "full",
     values = function()
         table.wipe(shout_spells)
@@ -2181,8 +2165,8 @@ spec:RegisterSetting("shout_spell", "commanding_shout", {
 
 spec:RegisterSetting("queueing_threshold", 60, {
     type = "range",
-    name = "Queue Rage Threshold",
-    desc = "Select the rage threshold after which heroic strike / cleave will be recommended",
+    name = "Heroic Strike / Cleave: Above Rage",
+    desc = "Heroic Strike (or Cleave in AOE) is recommended when your rage is above this.",
     width = "full",
     min = 0,
     softMax = 100,
@@ -2194,8 +2178,8 @@ spec:RegisterSetting("queueing_threshold", 60, {
 
 spec:RegisterSetting("predict_tfb", true, {
     type = "toggle",
-    name = "Predict Taste For Blood",
-    desc = "When enabled, Taste For Blood procs will be predicted and displayed in future recommendations",
+    name = "Predict Taste for Blood",
+    desc = "Arms: if checked, Taste for Blood procs are predicted and shown in the next icons.",
     width = "full",
     set = function( _, val )
         Hekili.DB.profile.specs[ 1 ].settings.predict_tfb = val
@@ -2204,17 +2188,12 @@ spec:RegisterSetting("predict_tfb", true, {
 
 spec:RegisterSetting("optimize_overpower", false, {
     type = "toggle",
-    name = "Optimize Overpower",
-    desc = "When enabled, Overpower will be deprioritized until the GCD before a subsequent Taste For Blood proc.\n\nApplies to Arms only.",
+    name = "Hold Overpower for Taste for Blood",
+    desc = "Arms: if checked, Overpower waits until just before the next Taste for Blood proc.",
     width = "full",
     set = function( _, val )
         Hekili.DB.profile.specs[ 1 ].settings.optimize_overpower = val
     end
-})
-
-spec:RegisterSetting("general_footer", nil, {
-    type = "description",
-    name = "\n\n\n"
 })
 
 spec:RegisterSetting("debuffs_header", nil, {
@@ -2222,15 +2201,10 @@ spec:RegisterSetting("debuffs_header", nil, {
     name = "Debuffs"
 })
 
-spec:RegisterSetting("debuffs_description", nil, {
-    type = "description",
-    name = "Debuffs settings will change which debuffs are recommended"
-})
-
 spec:RegisterSetting("debuff_sunder_enabled", true, {
     type = "toggle",
-    name = "Maintain Sunder Armor",
-    desc = "When enabled, recommendations will include sunder armor",
+    name = "Keep Up Sunder Armor",
+    desc = "If checked, Sunder Armor is recommended.",
     width = "full",
     set = function( _, val )
         Hekili.DB.profile.specs[ 1 ].settings.debuff_sunder_enabled = val
@@ -2239,33 +2213,23 @@ spec:RegisterSetting("debuff_sunder_enabled", true, {
 
 spec:RegisterSetting("debuff_demoshout_enabled", false, {
     type = "toggle",
-    name = "Maintain Demoralizing Shout",
-    desc = "When enabled, recommendations will include demoralizing shout",
+    name = "Keep Up Demoralizing Shout",
+    desc = "If checked, Demoralizing Shout is recommended when the target has no attack power debuff.",
     width = "full",
     set = function( _, val )
         Hekili.DB.profile.specs[ 1 ].settings.debuff_demoshout_enabled = val
     end
 })
 
-spec:RegisterSetting("debuffs_footer", nil, {
-    type = "description",
-    name = "\n\n\n"
-})
-
 spec:RegisterSetting("execute_header", nil, {
     type = "header",
-    name = "Execute"
-})
-
-spec:RegisterSetting("execute_description", nil, {
-    type = "description",
-    name = "Execute settings will change recommendations only during execute phase"
+    name = "Execute Phase (target below 20%)",
 })
 
 spec:RegisterSetting("execute_queueing_enabled", true, {
     type = "toggle",
-    name = "Queue During Execute",
-    desc = "When enabled, recommendations will include heroic strike or cleave during the execute phase",
+    name = "Heroic Strike / Cleave",
+    desc = "If checked, Heroic Strike or Cleave can be recommended during the execute phase.",
     width = "full",
     set = function( _, val )
         Hekili.DB.profile.specs[ 1 ].settings.execute_queueing_enabled = val
@@ -2274,8 +2238,8 @@ spec:RegisterSetting("execute_queueing_enabled", true, {
 
 spec:RegisterSetting("execute_bloodthirst_enabled", true, {
     type = "toggle",
-    name = "Bloodthirst During Execute",
-    desc = "When enabled, recommendations will include bloodthirst during the execute phase",
+    name = "Bloodthirst",
+    desc = "If checked, Bloodthirst can be recommended during the execute phase.",
     width = "full",
     set = function( _, val )
         Hekili.DB.profile.specs[ 1 ].settings.execute_bloodthirst_enabled = val
@@ -2284,8 +2248,8 @@ spec:RegisterSetting("execute_bloodthirst_enabled", true, {
 
 spec:RegisterSetting("execute_whirlwind_enabled", true, {
     type = "toggle",
-    name = "Whirlwind During Execute",
-    desc = "When enabled, recommendations will include whirlwind during the execute phase",
+    name = "Whirlwind",
+    desc = "If checked, Whirlwind can be recommended during the execute phase.",
     width = "full",
     set = function( _, val )
         Hekili.DB.profile.specs[ 1 ].settings.execute_whirlwind_enabled = val
@@ -2294,34 +2258,23 @@ spec:RegisterSetting("execute_whirlwind_enabled", true, {
 
 spec:RegisterSetting("execute_slam_prio", true, {
     type = "toggle",
-    name = "Slam Over Execute",
-    desc = "When enabled, recommendations will prioritize slam over execute during the execute phase",
+    name = "Slam Before Execute",
+    desc = "If checked, Slam goes before Execute during the execute phase.",
     width = "full",
     set = function( _, val )
         Hekili.DB.profile.specs[ 1 ].settings.execute_slam_prio = val
     end
 })
 
-spec:RegisterSetting("execute_footer", nil, {
-    type = "description",
-    name = "\n\n\n"
-})
-
 spec:RegisterSetting("weaving_header", nil, {
     type = "header",
-    name = "Weaving"
-})
-
-spec:RegisterSetting("weaving_description", nil, {
-    type = "description",
-    name = "Enabling weaving will cause Hekili to recommend the player swaps into battle stance and rends/overpowers the target under "..
-        "certain conditions.\n\nApplies to Fury only"
+    name = "Stance Weaving (Fury)",
 })
 
 spec:RegisterSetting("weaving_enabled", false, {
     type = "toggle",
-    name = "Enabled",
-    desc = "When enabled, recommendations will include battle stance swapping under certain conditions",
+    name = "Stance Weaving",
+    desc = "Fury: if checked, switching to Battle Stance for Rend and Overpower can be recommended.",
     width = "full",
     set = function( _, val )
         Hekili.DB.profile.specs[ 1 ].settings.weaving_enabled = val
@@ -2330,8 +2283,8 @@ spec:RegisterSetting("weaving_enabled", false, {
 
 spec:RegisterSetting("weave_rage_threshold", 100, {
     type = "range",
-    name = "Maximum Rage",
-    desc = "Select the maximum rage at which weaving will be recommended",
+    name = "Weaving: Up to Rage",
+    desc = "Weaving is only recommended at or below this much rage.",
     width = "full",
     min = 0,
     softMax = 100,
@@ -2343,8 +2296,8 @@ spec:RegisterSetting("weave_rage_threshold", 100, {
 
 spec:RegisterSetting("weave_health_threshold", 20, {
     type = "range",
-    name = "Minimum Target Health",
-    desc = "Select the minimum target health at which weaving will be recommended",
+    name = "Weaving: Target Health Above %",
+    desc = "Weaving is only recommended while the target's health is above this %.",
     width = "full",
     min = 0,
     max = 100,
@@ -2356,8 +2309,8 @@ spec:RegisterSetting("weave_health_threshold", 20, {
 
 spec:RegisterSetting("weave_cooldown_threshold", 1.5, {
     type = "range",
-    name = "Cooldown Threshold",
-    desc = "Select the minimum time left allowed on bloodthirst and whirlwind before weaving can be recommended",
+    name = "Weaving: Bloodthirst / Whirlwind Cooldown (seconds)",
+    desc = "Weaving is only recommended when Bloodthirst and Whirlwind have at least this long left on their cooldowns.",
     width = "full",
     min = 0,
     softMax = 8,
@@ -2369,8 +2322,8 @@ spec:RegisterSetting("weave_cooldown_threshold", 1.5, {
 
 spec:RegisterSetting("rend_refresh_time", 0, {
     type = "range",
-    name = "Refresh Time",
-    desc = "Select the time left on an existing rend debuff at which rendweaving can be recommended",
+    name = "Weaving: Refresh Rend (seconds left)",
+    desc = "Rend is reapplied by weaving when this many seconds or less are left on it. 0 = only once it has ended.",
     width = "full",
     min = 0,
     softMax = 21,
@@ -2378,11 +2331,6 @@ spec:RegisterSetting("rend_refresh_time", 0, {
     set = function( _, val )
         Hekili.DB.profile.specs[ 1 ].settings.rend_refresh_time = val
     end
-})
-
-spec:RegisterSetting("weaving_footer", nil, {
-    type = "description",
-    name = "\n\n\n"
 })
 
 

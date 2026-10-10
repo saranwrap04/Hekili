@@ -1,5 +1,5 @@
 ## Interface: 30300
-## Version: 3.3.5-1.2.1
+## Version: 3.3.5-1.2.4
 ## Title: Hekili
 ## Author: Hekili (3.3.5 backport: Saranwrap)
 ## X-Flavor: Wrath

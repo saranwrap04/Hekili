@@ -2298,9 +2298,8 @@ local curses = {}
 
 spec:RegisterSetting( "solo_curse", "curse_of_agony", {
     type = "select",
-    name = "Preferred Curse when Solo",
-    desc = "Select the Curse you'd like to use when playing solo.  It is referenced as |cff00ccff[Solo Curse]|r in your priority.\n\n"
-        .. "If Curse of Doom is selected and your target is expected to die in fewer than 65 seconds, Curse of Agony will be used instead.",
+    name = "Curse When Solo",
+    desc = "The curse recommended when you are alone. Curse of Doom switches to Curse of Agony if the target should die within about 65 seconds.",
     width = "full",
     values = function()
         table.wipe( curses )
@@ -2322,9 +2321,8 @@ spec:RegisterSetting( "solo_curse", "curse_of_agony", {
 
 spec:RegisterSetting( "group_curse", "curse_of_the_elements", {
     type = "select",
-    name = "Preferred Curse when Grouped",
-    desc = "Select the Curse you'd like to use when playing in a group.  It is referenced as |cff00ccff[Group Curse]|r in your priority.\n\n"
-        .. "If Curse of Doom is selected and your target is expected to die in fewer than 65 seconds, Curse of Agony will be used instead.",
+    name = "Curse in a Group",
+    desc = "The curse recommended in a group (see Use the Group Curse In). Curse of Doom switches to Curse of Agony if the target should die within about 65 seconds.",
     width = "full",
     values = function()
         table.wipe( curses )
@@ -2346,8 +2344,8 @@ spec:RegisterSetting( "group_curse", "curse_of_the_elements", {
 
 spec:RegisterSetting("inferno_enabled", false, {
     type = "toggle",
-    name = "Inferno: Enabled?",
-    desc = "Select whether or not Inferno should be used",
+    name = "Inferno",
+    desc = "If checked, Inferno can be recommended.",
     width = "full",
     set = function( _, val )
         Hekili.DB.profile.specs[ 9 ].settings.inferno_enabled = val
@@ -2356,10 +2354,9 @@ spec:RegisterSetting("inferno_enabled", false, {
 
 spec:RegisterSetting( "group_type", "party", {
     type = "select",
-    name = "Group Type for Group Curse",
-    desc = "Select the type of group that is required before the addon recommends your |cff00ccff[Group Curse]|r rather than |cff00ccff[Solo Curse]|r.\n\n" ..
-        "Selecting " .. PARTY .. " will work for a 5 person group.  Selecting " .. RAID .. " will work for any larger group.\n\n" ..
-        "In default priorities, |cffffd100curse_grouped|r will be |cffffd100true|r when this condition is met.  Custom priorities may ignore this setting.",
+    order = 102.5,
+    name = "Use the Group Curse In",
+    desc = "Party: in any group. Raid: only in a raid (a party still uses the solo curse).",
     width = "full",
     values = {
         party = PARTY,
@@ -2369,9 +2366,8 @@ spec:RegisterSetting( "group_type", "party", {
 
 spec:RegisterSetting( "shadow_mastery", true, {
     type = "toggle",
-    name = "Handle Improved Shadow Bolt (Shadow Mastery)",
-    desc = "Ensure this setting is |cFF00FF00enabled|r if Improved Shadow Bolt is talented, you are in a group, and you are responsible for maintaining the Shadow Mastery debuff on your target.\n\n"
-        .. "If someone else is assigned, you can |cFFFF0000disable|r this setting to remove some Shadow Bolt casts from the default priority.",
+    name = "Keep Up Shadow Mastery",
+    desc = "Check if you have Improved Shadow Bolt and keep the Shadow Mastery debuff up for your group. Uncheck if someone else does (fewer Shadow Bolts).",
     width = "full"
 } )
 

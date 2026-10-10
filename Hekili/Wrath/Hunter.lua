@@ -2406,14 +2406,14 @@ spec:RegisterPackSelector( "survival", "Survival (wowtbc.gg)", "|TInterface\\ico
 -- Settings
 spec:RegisterSetting( "suggest_explosive_st", false, {
     type = "toggle",
-    name = "|TInterface\\icons\\spell_fire_selfdestruct:0|t Suggest Explosive Trap on Single Target",
-    desc = "When enabled, |TInterface\\icons\\spell_fire_selfdestruct:0|t Explosive Trap will be suggested in single target scenarios as well as AoE.",
+    name = "Explosive Trap on One Enemy",
+    desc = "If checked, Explosive Trap can also be recommended against one enemy (otherwise only in AOE).",
     width = "full",
 } )
 
 spec:RegisterSetting( "manage_mana_viper", false, {
     type = "toggle",
-    name = "|TInterface\\icons\\ability_hunter_aspectoftheviper:0|t Swap to Aspect of the Viper for Mana",
-    desc = "When enabled, the profile will suggest swapping to |TInterface\\icons\\ability_hunter_aspectoftheviper:0|t Aspect of the Viper at low mana.",
+    name = "Aspect of the Viper at Low Mana",
+    desc = "If checked, switching to Aspect of the Viper is recommended when your mana is low.",
     width = "full",
 } )

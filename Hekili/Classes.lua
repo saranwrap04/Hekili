@@ -983,12 +983,12 @@ local HekiliSpecMixin = {
         self:RegisterSetting( key, package, {
             type = "select",
             name = name,
-            desc = description .. "\n\nIf set to (inactive), your active priority will not change.",
+            desc = "The rotation used when most of your talent points are in " .. ( name:gsub( "|T.-|t%s*", "" ) ) .. ". (no change) keeps the current rotation.",
             order = #self.packSelectors,
             width = "full",
             values = function()
                 local values = {
-                    none = "(inactive)"
+                    none = "(no change)"
                 }
 
                 for pname, pkg in pairs( Hekili.DB.profile.packs ) do

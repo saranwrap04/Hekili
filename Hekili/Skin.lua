@@ -340,10 +340,413 @@ do
         Hover( f )
     end
 
+    -- Check boxes: a flat dark square with the yellow game check mark (as in the other addons).
+    -- Another UI skin's own pieces (ElvUI adds a backdrop frame) are hidden meanwhile.
+    local CHECK = "Interface\\Buttons\\UI-CheckBox-Check"
+
+    local function CheckBoxParts( f, anchor )
+        local box = f.__hekiliCheck
+        if box then return box end
+        box = {}
+        local function T( layer )
+            local tx = f:CreateTexture( nil, layer )
+            tx:SetTexture( "Interface\\Buttons\\WHITE8X8" )
+            box[ #box + 1 ] = tx
+            return tx
+        end
+        local fill = T( "BACKGROUND" )
+        fill:SetPoint( "TOPLEFT", anchor, "TOPLEFT", 4, -4 )
+        fill:SetPoint( "BOTTOMRIGHT", anchor, "BOTTOMRIGHT", -4, 4 )
+        fill:SetVertexColor( unpack( C.inset ) )
+        local top, bottom, left, right = T( "BORDER" ), T( "BORDER" ), T( "BORDER" ), T( "BORDER" )
+        top:SetPoint( "TOPLEFT", fill ) top:SetPoint( "TOPRIGHT", fill ) top:SetHeight( 1 )
+        bottom:SetPoint( "BOTTOMLEFT", fill ) bottom:SetPoint( "BOTTOMRIGHT", fill ) bottom:SetHeight( 1 )
+        left:SetPoint( "TOPLEFT", fill ) left:SetPoint( "BOTTOMLEFT", fill ) left:SetWidth( 1 )
+        right:SetPoint( "TOPRIGHT", fill ) right:SetPoint( "BOTTOMRIGHT", fill ) right:SetWidth( 1 )
+        box.edges = { top, bottom, left, right }
+        for _, e in ipairs( box.edges ) do e:SetVertexColor( unpack( C.line ) ) end
+        f.__hekiliCheck = box
+        return box
+    end
+
+    local function SkinCheck( f, w )
+        local bg, ck = w.checkbg, w.check
+        if not ( bg and ck ) then return end
+
+        local rec = { kind = "check", bg = bg, ck = ck, kids = {} }
+        rec.bgAlpha = bg:GetAlpha()
+        rec.ckTex = ck:GetTexture()
+        rec.ckCoord = { ck:GetTexCoord() }
+        rec.ckColor = { ck:GetVertexColor() }
+        rec.ckBlend = ck.GetBlendMode and ck:GetBlendMode() or "BLEND"
+        rec.ckPoints = {}
+        for i = 1, ck:GetNumPoints() do rec.ckPoints[ i ] = { ck:GetPoint( i ) } end
+        for _, c in ipairs( { f:GetChildren() } ) do
+            if c:IsShown() then rec.kids[ #rec.kids + 1 ] = c c:Hide() end
+        end
+        saved[ f ] = rec
+
+        bg:SetAlpha( 0 )
+        local box = CheckBoxParts( f, bg )
+        for _, tx in ipairs( box ) do tx:Show() end
+
+        ck:SetTexture( CHECK )
+        ck:SetTexCoord( 0, 1, 0, 1 )
+        ck:SetVertexColor( 1, 1, 1, 1 )
+        ck:SetBlendMode( "BLEND" )
+        ck:ClearAllPoints()
+        ck:SetAllPoints( bg )
+
+        if not f.__hekiliCheckHover then
+            f.__hekiliCheckHover = true
+            f:HookScript( "OnEnter", function( self )
+                if saved[ self ] and self.__hekiliCheck then
+                    for _, e in ipairs( self.__hekiliCheck.edges ) do e:SetVertexColor( unpack( C.accent ) ) end
+                end
+            end )
+            f:HookScript( "OnLeave", function( self )
+                if self.__hekiliCheck then
+                    for _, e in ipairs( self.__hekiliCheck.edges ) do e:SetVertexColor( unpack( C.line ) ) end
+                end
+            end )
+        end
+    end
+
+    -- A flat box (fill + 1 px border) drawn with textures on f, kept on f for reuse.
+    local function FlatBox( f, key, layer )
+        local box = f[ key ]
+        if box then return box end
+        box = {}
+        local fill = f:CreateTexture( nil, layer or "BACKGROUND" )
+        fill:SetTexture( "Interface\\Buttons\\WHITE8X8" )
+        box[ 1 ] = fill
+        box.fill = fill
+        box.edges = {}
+        for i = 1, 4 do
+            local e = f:CreateTexture( nil, "BORDER" )
+            e:SetTexture( "Interface\\Buttons\\WHITE8X8" )
+            box[ #box + 1 ] = e
+            box.edges[ i ] = e
+        end
+        local top, bottom, left, right = unpack( box.edges )
+        top:SetPoint( "TOPLEFT", fill ) top:SetPoint( "TOPRIGHT", fill ) top:SetHeight( 1 )
+        bottom:SetPoint( "BOTTOMLEFT", fill ) bottom:SetPoint( "BOTTOMRIGHT", fill ) bottom:SetHeight( 1 )
+        left:SetPoint( "TOPLEFT", fill ) left:SetPoint( "BOTTOMLEFT", fill ) left:SetWidth( 1 )
+        right:SetPoint( "TOPRIGHT", fill ) right:SetPoint( "BOTTOMRIGHT", fill ) right:SetWidth( 1 )
+        f[ key ] = box
+        return box
+    end
+
+    local function ShowBox( box, fill, line )
+        box.fill:SetVertexColor( unpack( fill ) )
+        for _, e in ipairs( box.edges ) do e:SetVertexColor( unpack( line ) ) end
+        for _, tx in ipairs( box ) do tx:Show() end
+    end
+
+    local function HideBox( box )
+        if box then for _, tx in ipairs( box ) do tx:Hide() end end
+    end
+
+    local function BoxHover( f, target, key )
+        if f.__hekiliBoxHover then return end
+        f.__hekiliBoxHover = true
+        f:HookScript( "OnEnter", function()
+            local box = target[ key ]
+            if saved[ target ] and box then for _, e in ipairs( box.edges ) do e:SetVertexColor( unpack( C.accent ) ) end end
+        end )
+        f:HookScript( "OnLeave", function()
+            local box = target[ key ]
+            if saved[ target ] and box then for _, e in ipairs( box.edges ) do e:SetVertexColor( unpack( C.line ) ) end end
+        end )
+    end
+
+    -- Remember a texture's alpha and hide it (alpha survives the Show/Hide calls of the game's templates).
+    local function Fade( rec, tx )
+        if not tx then return end
+        rec.faded = rec.faded or {}
+        rec.faded[ #rec.faded + 1 ] = { tx, tx:GetAlpha() }
+        tx:SetAlpha( 0 )
+    end
+
+    -- Another UI skin (ElvUI, Tukui...) adds frames with a backdrop on top of these widgets:
+    -- hidden while ours is shown, shown again on restore.
+    local function HideSkinFrames( rec, parent, keep )
+        if not parent or not parent.GetChildren then return end
+        for _, c in ipairs( { parent:GetChildren() } ) do
+            if not ( keep and keep[ c ] ) and c:IsShown() and c.GetBackdrop and c:GetBackdrop() then
+                rec.kids = rec.kids or {}
+                rec.kids[ #rec.kids + 1 ] = c
+                c:Hide()
+            end
+        end
+    end
+
+    local function ArrowText( f, anchor )
+        local fs = f.__hekiliArrow
+        if not fs then
+            fs = f:CreateFontString( nil, "OVERLAY", "GameFontHighlightSmall" )
+            fs:SetText( "v" )
+            f.__hekiliArrow = fs
+        end
+        fs:ClearAllPoints()
+        fs:SetPoint( "CENTER", anchor, "CENTER", 0, 0 )
+        fs:SetTextColor( unpack( C.text ) )
+        fs:Show()
+        return fs
+    end
+
+    -- Dropdowns (AceGUI and the font / texture pickers): a flat field with a small "v" at its right.
+    local function SkinDropdown( f, w )
+        local rec = { kind = "drop" }
+        local left, middle, right, button
+
+        if w.dropdown then -- AceGUI Dropdown
+            local name = w.dropdown:GetName()
+            left, middle, right = _G[ name .. "Left" ], _G[ name .. "Middle" ], _G[ name .. "Right" ]
+            button = w.button
+        else -- AceGUI-SharedMediaWidgets
+            left, middle, right = f.DLeft, f.DMiddle, f.DRight
+            button = f.dropButton
+        end
+        if not ( left and right and button ) then return end
+
+        saved[ f ] = rec
+        Fade( rec, left ) Fade( rec, middle ) Fade( rec, right )
+        Fade( rec, button:GetNormalTexture() ) Fade( rec, button:GetPushedTexture() )
+        Fade( rec, button:GetDisabledTexture() ) Fade( rec, button:GetHighlightTexture() )
+
+        local keep = {}
+        if w.dropdown then keep[ w.dropdown ] = true end
+        if w.button_cover then keep[ w.button_cover ] = true end
+        keep[ button ] = true
+        if f.displayButton then keep[ f.displayButton ] = true end
+        HideSkinFrames( rec, f, keep )
+        HideSkinFrames( rec, w.dropdown, keep )
+
+        local box = FlatBox( f, "__hekiliDrop" )
+        box.fill:ClearAllPoints()
+        -- The visible field of the game's dropdown art is 24 px high, 19 px under the top of these textures.
+        box.fill:SetPoint( "TOPLEFT", left, "TOPLEFT", 17, -19 )
+        box.fill:SetPoint( "BOTTOMRIGHT", right, "TOPRIGHT", -17, -43 )
+        ShowBox( box, C.inset, C.line )
+        rec.box = box
+
+        rec.arrow = ArrowText( f, button )
+        BoxHover( button, f, "__hekiliDrop" )
+        if w.button_cover then BoxHover( w.button_cover, f, "__hekiliDrop" ) end
+
+        -- The list that opens.
+        if w.pullout and w.pullout.frame and not saved[ w.pullout.frame ] then
+            local pf = w.pullout.frame
+            local bd = pf:GetBackdrop()
+            saved[ pf ] = { kind = "backdrop", bd = bd, c = { pf:GetBackdropColor() }, bc = { pf:GetBackdropBorderColor() } }
+            Flat( pf, C.panel, C.line )
+        end
+
+        -- Font / texture pickers open a list of their own, shared with every addon: restyled while open.
+        if not w.dropdown and not button.__hekiliList then
+            button.__hekiliList = true
+            button:HookScript( "OnClick", function( self )
+                local dd = self.obj and self.obj.dropdown
+                if not ( dd and saved[ f ] ) or saved[ dd ] then return end
+                saved[ dd ] = { kind = "backdrop", bd = dd:GetBackdrop(), c = { dd:GetBackdropColor() }, bc = { dd:GetBackdropBorderColor() } }
+                Flat( dd, C.panel, C.line )
+                if not dd.__hekiliHide then
+                    dd.__hekiliHide = true
+                    dd:HookScript( "OnHide", function( d )
+                        local r = saved[ d ]
+                        if r then
+                            saved[ d ] = nil
+                            d:SetBackdrop( r.bd )
+                            if r.bd then
+                                if r.c[1] then d:SetBackdropColor( unpack( r.c ) ) end
+                                if r.bc[1] then d:SetBackdropBorderColor( unpack( r.bc ) ) end
+                            end
+                        end
+                    end )
+                end
+            end )
+        end
+    end
+
+    -- Sliders: a thin flat track with a small orange handle.
+    local function SkinSlider( f )
+        local thumb = f:GetThumbTexture()
+        local rec = { kind = "slider", bd = f:GetBackdrop() }
+        if rec.bd then
+            rec.c = { f:GetBackdropColor() }
+            rec.bc = { f:GetBackdropBorderColor() }
+        end
+        if thumb then
+            rec.thumb = thumb
+            rec.thumbTex = thumb:GetTexture()
+            rec.thumbW, rec.thumbH = thumb:GetWidth(), thumb:GetHeight()
+            rec.thumbColor = { thumb:GetVertexColor() }
+        end
+        saved[ f ] = rec
+
+        f:SetBackdrop( nil )
+        local box = FlatBox( f, "__hekiliTrack" )
+        box.fill:ClearAllPoints()
+        box.fill:SetPoint( "LEFT", f, "LEFT", 0, 0 )
+        box.fill:SetPoint( "RIGHT", f, "RIGHT", 0, 0 )
+        box.fill:SetHeight( 6 )
+        ShowBox( box, C.inset, C.line )
+        rec.box = box
+
+        if thumb then
+            thumb:SetTexture( "Interface\\Buttons\\WHITE8X8" )
+            thumb:SetVertexColor( unpack( C.accent ) )
+            thumb:SetWidth( 8 )
+            thumb:SetHeight( 14 )
+        end
+        BoxHover( f, f, "__hekiliTrack" )
+    end
+
+    -- Tabs (the display pages): flat, the selected one with an orange border. The game overlaps
+    -- tabs by 10 px, so each box is inset 6 px on both sides.
+    local function TabLook( tab )
+        local rec = saved[ tab ]
+        local box = tab.__hekiliTabBox
+        if not ( rec and box ) then return end
+        ShowBox( box, tab.selected and C.hover or C.panel, tab.selected and C.accent or C.line )
+    end
+
+    local function SkinTab( f )
+        local name = f:GetName()
+        if not name then return end
+        local rec = { kind = "tab" }
+        saved[ f ] = rec
+        for _, part in ipairs( { "Left", "Middle", "Right", "LeftDisabled", "MiddleDisabled", "RightDisabled" } ) do
+            Fade( rec, _G[ name .. part ] )
+        end
+        Fade( rec, f:GetHighlightTexture() )
+        HideSkinFrames( rec, f )
+
+        local box = FlatBox( f, "__hekiliTabBox" )
+        box.fill:ClearAllPoints()
+        box.fill:SetPoint( "TOPLEFT", f, "TOPLEFT", 6, -2 )
+        box.fill:SetPoint( "BOTTOMRIGHT", f, "BOTTOMRIGHT", -6, 0 )
+        rec.box = box
+        TabLook( f )
+
+        if not f.__hekiliTab then
+            f.__hekiliTab = true
+            if f.SetSelected then hooksecurefunc( f, "SetSelected", TabLook ) end
+            f:HookScript( "OnEnter", function( self )
+                local b = self.__hekiliTabBox
+                if saved[ self ] and b and not self.selected then for _, e in ipairs( b.edges ) do e:SetVertexColor( unpack( C.accent ) ) end end
+            end )
+            f:HookScript( "OnLeave", function( self ) TabLook( self ) end )
+        end
+    end
+
+    -- Scroll bars (page and tree): flat buttons with ^ / v, a thin track and a grey handle.
+    local function SkinScrollBar( f )
+        local name = f:GetName()
+        local up, down = _G[ name .. "ScrollUpButton" ], _G[ name .. "ScrollDownButton" ]
+        local thumb = f:GetThumbTexture()
+        local rec = { kind = "scroll", bd = f:GetBackdrop() }
+        if rec.bd then rec.c = { f:GetBackdropColor() } rec.bc = { f:GetBackdropBorderColor() } end
+        saved[ f ] = rec
+        f:SetBackdrop( nil )
+
+        local track = FlatBox( f, "__hekiliTrack" )
+        track.fill:ClearAllPoints()
+        track.fill:SetPoint( "TOP", f, "TOP", 0, 0 )
+        track.fill:SetPoint( "BOTTOM", f, "BOTTOM", 0, 0 )
+        track.fill:SetWidth( 8 )
+        ShowBox( track, C.inset, C.line )
+        rec.boxes = { track }
+
+        if thumb then
+            rec.thumb = thumb
+            rec.thumbTex = thumb:GetTexture()
+            rec.thumbW, rec.thumbH = thumb:GetWidth(), thumb:GetHeight()
+            rec.thumbColor = { thumb:GetVertexColor() }
+            thumb:SetTexture( "Interface\\Buttons\\WHITE8X8" )
+            thumb:SetVertexColor( 0.45, 0.45, 0.45, 1 )
+            thumb:SetWidth( 8 )
+        end
+
+        rec.arrows = {}
+        for _, pair in ipairs( { { up, "^" }, { down, "v" } } ) do
+            local b, symbol = pair[ 1 ], pair[ 2 ]
+            if b then
+                Fade( rec, b:GetNormalTexture() ) Fade( rec, b:GetPushedTexture() )
+                Fade( rec, b:GetDisabledTexture() ) Fade( rec, b:GetHighlightTexture() )
+                local box = FlatBox( b, "__hekiliBtn" )
+                box.fill:ClearAllPoints()
+                box.fill:SetPoint( "TOPLEFT", b, "TOPLEFT", 1, -1 )
+                box.fill:SetPoint( "BOTTOMRIGHT", b, "BOTTOMRIGHT", -1, 1 )
+                ShowBox( box, C.panel, C.line )
+                rec.boxes[ #rec.boxes + 1 ] = box
+                local fs = ArrowText( b, b )
+                fs:SetText( symbol )
+                rec.arrows[ #rec.arrows + 1 ] = fs
+                if not b.__hekiliBtnHover then
+                    b.__hekiliBtnHover = true
+                    b:HookScript( "OnEnter", function( self ) if saved[ f ] and self.__hekiliBtn then for _, e in ipairs( self.__hekiliBtn.edges ) do e:SetVertexColor( unpack( C.accent ) ) end end end )
+                    b:HookScript( "OnLeave", function( self ) if self.__hekiliBtn then for _, e in ipairs( self.__hekiliBtn.edges ) do e:SetVertexColor( unpack( C.line ) ) end end end )
+                end
+            end
+        end
+    end
+
     local function Restore( f )
         local rec = saved[ f ]
         if not rec then return end
         saved[ f ] = nil
+
+        if rec.faded then
+            for _, pair in ipairs( rec.faded ) do pair[ 1 ]:SetAlpha( pair[ 2 ] or 1 ) end
+        end
+
+        if rec.kids and rec.kind ~= "check" then
+            for _, c in ipairs( rec.kids ) do c:Show() end
+        end
+
+        if rec.kind == "drop" or rec.kind == "tab" then
+            HideBox( rec.box )
+            if rec.arrow then rec.arrow:Hide() end
+            return
+        elseif rec.kind == "slider" or rec.kind == "scroll" then
+            HideBox( rec.box )
+            for _, b in ipairs( rec.boxes or {} ) do HideBox( b ) end
+            for _, fs in ipairs( rec.arrows or {} ) do fs:Hide() end
+            f:SetBackdrop( rec.bd )
+            if rec.bd then
+                if rec.c and rec.c[1] then f:SetBackdropColor( unpack( rec.c ) ) end
+                if rec.bc and rec.bc[1] then f:SetBackdropBorderColor( unpack( rec.bc ) ) end
+            end
+            local thumb = rec.thumb
+            if thumb then
+                thumb:SetTexture( rec.thumbTex )
+                if rec.thumbColor[1] then thumb:SetVertexColor( unpack( rec.thumbColor ) ) else thumb:SetVertexColor( 1, 1, 1, 1 ) end
+                if rec.thumbW and rec.thumbW > 0 then thumb:SetWidth( rec.thumbW ) end
+                if rec.thumbH and rec.thumbH > 0 then thumb:SetHeight( rec.thumbH ) end
+            end
+            return
+        end
+
+        if rec.kind == "check" then
+            local bg, ck = rec.bg, rec.ck
+            if f.__hekiliCheck then
+                for _, tx in ipairs( f.__hekiliCheck ) do tx:Hide() end
+                for _, e in ipairs( f.__hekiliCheck.edges ) do e:SetVertexColor( unpack( C.line ) ) end
+            end
+            bg:SetAlpha( rec.bgAlpha or 1 )
+            ck:SetTexture( rec.ckTex )
+            if rec.ckCoord[1] then ck:SetTexCoord( unpack( rec.ckCoord ) ) end
+            if rec.ckColor[1] then ck:SetVertexColor( unpack( rec.ckColor ) ) end
+            ck:SetBlendMode( rec.ckBlend or "BLEND" )
+            if #rec.ckPoints > 0 then
+                ck:ClearAllPoints()
+                for _, pt in ipairs( rec.ckPoints ) do ck:SetPoint( unpack( pt ) ) end
+            end
+            for _, c in ipairs( rec.kids ) do c:Show() end
+            return
+        end
 
         f:SetBackdrop( rec.bd )
         if rec.bd then
@@ -363,7 +766,22 @@ do
     local function SkinFrame( f )
         if saved[ f ] then return end
         local obj = f.obj
-        if obj and obj.type == "Button" and f == obj.frame and f:GetObjectType() == "Button" then
+        local otype = obj and obj.type
+        if otype == "CheckBox" and f == obj.frame then
+            SkinCheck( f, obj )
+        elseif otype and ( otype == "Dropdown" or otype:match( "^LSM30_" ) ) and f == obj.frame then
+            SkinDropdown( f, obj )
+        elseif otype == "Slider" and f == obj.slider then
+            SkinSlider( f )
+        elseif f:GetObjectType() == "Slider" and f:GetName() and _G[ f:GetName() .. "ScrollUpButton" ] then
+            SkinScrollBar( f )
+        elseif otype == "TabGroup" and f.id and f.SetSelected and f:GetObjectType() == "Button" then
+            SkinTab( f )
+        elseif otype == "Keybinding" and f == obj.button then
+            SkinBox( f, C.panel, C.border, true )
+            local hl = f:GetHighlightTexture()
+            if hl then hl:SetAlpha( 0.35 ) end -- kept: it shows the key box is waiting for a key
+        elseif obj and obj.type == "Button" and f == obj.frame and f:GetObjectType() == "Button" then
             SkinBox( f, C.panel, C.border, true )
         elseif obj and obj.type == "EditBox" and f == obj.editbox then
             SkinBox( f, C.inset, C.line )
@@ -375,6 +793,10 @@ do
     local function Walk( f, depth )
         if depth > 14 then return end
         SkinFrame( f )
+        if f.obj and ( f.obj.type == "CheckBox" or f.obj.type == "Dropdown" or ( f.obj.type or "" ):match( "^LSM30_" ) ) and f == f.obj.frame then
+            return -- their parts are handled by SkinCheck / SkinDropdown
+        end
+        if f:GetObjectType() == "Slider" and saved[ f ] and saved[ f ].kind == "scroll" then return end -- SkinScrollBar
         local n = f:GetNumChildren()
         if n > 0 then
             local children = { f:GetChildren() }

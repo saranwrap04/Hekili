@@ -438,13 +438,13 @@ do
         },
 
         {
-            text = "Auto",
+            text = "Automatic",
             func = function () SetDisplayMode( "automatic" ) end,
             checked = function () return IsDisplayMode( p, "automatic" ) end,
         },
 
         {
-            text = "Single",
+            text = "Single Target",
             func = function () SetDisplayMode( "single" ) end,
             checked = function () return IsDisplayMode( p, "single" ) end,
         },
@@ -528,7 +528,7 @@ do
                         } )
 
                         local submenu = {
-                            text = "Active Priority",
+                            text = "Rotation",
                             hasArrow = true,
                             menuList = {},
                             notCheckable = true,
@@ -557,15 +557,15 @@ do
 
                         if #class.specs[ i ].packSelectors > 0 then
                             insert( menuData, {
-                                text = "Use Priority Selector",
+                                text = "Pick Rotation by Talents",
                                 func = function ()
                                     local spec = rawget( Hekili.DB.profile.specs, i )
                                     if spec then
                                         spec.usePackSelector = not spec.usePackSelector
                                         if Hekili.DB.profile.notifications.enabled then
-                                            Hekili:Notify( "Priority Selector: " .. ( spec.selector and "ON" or "OFF" ) )
+                                            Hekili:Notify( "Pick Rotation by Talents: " .. ( spec.usePackSelector and "ON" or "OFF" ) )
                                         else
-                                            self:Print( "Priority Selector: " .. ( spec.selector and " |cFF00FF00ENABLED|r." or " |cFFFF0000DISABLED|r." ) )
+                                            Hekili:Print( "Pick Rotation by Talents: " .. ( spec.usePackSelector and " |cFF00FF00ENABLED|r." or " |cFFFF0000DISABLED|r." ) )
                                         end
                                     end
                                 end,
@@ -586,7 +586,7 @@ do
                                     if Hekili.DB.profile.notifications.enabled then
                                         Hekili:Notify( "Recommend Target Swaps: " .. ( spec.cycle and "ON" or "OFF" ) )
                                     else
-                                        self:Print( "Recommend Target Swaps: " .. ( spec.cycle and " |cFF00FF00ENABLED|r." or " |cFFFF0000DISABLED|r." ) )
+                                        Hekili:Print( "Recommend Target Swaps: " .. ( spec.cycle and " |cFF00FF00ENABLED|r." or " |cFFFF0000DISABLED|r." ) )
                                     end
                                 end
                             end,
@@ -624,11 +624,13 @@ do
                                             menu.args[1] = setting.name
                                             setting.info.set( menu.args, not setting.info.get( menu.args ) )
 
+                                            local name = type( setting.info.name ) == "function" and setting.info.name() or setting.info.name
                                             if Hekili.DB.profile.notifications.enabled then
-                                                Hekili:Notify( setting.info.name .. ": " .. ( setting.info.get( menu.args ) and "ON" or "OFF" ) )
+                                                Hekili:Notify( name .. ": " .. ( setting.info.get( menu.args ) and "ON" or "OFF" ) )
                                             else
-                                                self:Print( setting.info.name .. ": " .. ( setting.info.get( menu.args ) and " |cFF00FF00ENABLED|r." or " |cFFFF0000DISABLED|r." ) )
+                                                Hekili:Print( name .. ": " .. ( setting.info.get( menu.args ) and " |cFF00FF00ENABLED|r." or " |cFFFF0000DISABLED|r." ) )
                                             end
+                                            Hekili:ForceUpdate( "HEKILI_MENU" )
                                         end,
                                         checked = function ()
                                             menu.args[1] = setting.name
@@ -644,7 +646,7 @@ do
                                         tooltipText = type( setting.info.desc ) == "function" and setting.info.desc() or setting.info.desc,
                                         tooltipOnButton = true,
                                         hasArrow = true,
-                                                                                menuList = {},
+                                        menuList = {},
                                         notCheckable = true,
                                         hidden = function () return Hekili.State.spec.id ~= i end,
                                     }
@@ -677,21 +679,15 @@ do
 
                                 elseif setting.info.type == "range" then
 
+                                    -- One entry per setting: its name, the current value, and the values in a sub-menu.
+                                    local label = type( setting.info.name ) == "function" and setting.info.name() or setting.info.name
                                     local submenu = {
-                                        text = type( setting.info.name ) == "function" and setting.info.name() or setting.info.name,
-                                        tooltipTitle = type( setting.info.name ) == "function" and setting.info.name() or setting.info.name,
-                                        tooltipText = type( setting.info.desc ) == "function" and setting.info.desc() or setting.info.desc,
-                                        tooltipOnButton = true,
-                                        keepShownOnClick = true,
-                                        notCheckable = true,
-                                        leftPadding = 26,
-                                        hidden = function () return Hekili.State.spec.id ~= i end,
-                                    }
-
-                                    insert( menuData, submenu )
-
-                                    submenu = {
-                                        text = type( setting.info.name ) == "function" and setting.info.name() or setting.info.name,
+                                        text = label,
+                                        dynText = function()
+                                            menu.args[1] = setting.name
+                                            local v = setting.info.get( menu.args )
+                                            return v ~= nil and format( "%s: |cFFFFD100%s|r", label, tostring( v ) ) or label
+                                        end,
                                         tooltipTitle = type( setting.info.name ) == "function" and setting.info.name() or setting.info.name,
                                         tooltipText = type( setting.info.desc ) == "function" and setting.info.desc() or setting.info.desc,
                                         tooltipOnButton = true,
@@ -761,6 +757,8 @@ do
             data.classicChecks = classic
 
             if not data.hidden or ( type( data.hidden ) == 'function' and not data.hidden() ) then
+                if data.dynText then data.text = data.dynText() end
+
                 if data.isSeparator then
                     menu.AddSeparator( level )
                 else

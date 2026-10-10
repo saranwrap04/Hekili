@@ -1,4 +1,4 @@
-HEKILI for WoW 3.3.5a - version 3.3.5-1.2.1
+HEKILI for WoW 3.3.5a - version 3.3.5-1.2.4
 Your next ability, on screen, for every class. Backport by Saranwrap.
 
 I am not the original author of this addon. Hekili is made by Hekili and its contributors
@@ -72,10 +72,10 @@ TOGGLES
 SETTINGS
   /hek, a right-click on the minimap button, or Escape > Interface > AddOns > Hekili.
   - Displays: size, icons, position, keybind text, glow, border, captions, visibility.
-  - Your class: active priority, priority selector, class options, targeting.
-  - Priorities: the action lists (edit, import, export).
-  - Abilities / Gear and Items: turn abilities or items off, change their toggle, override
-    their keybind text.
+  - Your class: rotation (or pick it by talents), rotation options, enemy counting.
+  - Priorities: the rotations themselves (copy, edit, import, export). For advanced users.
+  - Abilities / Gear and Items: turn one off, boss fights only, enemy count limits, its
+    toggle (Cooldowns...), its keybind text.
   - Profiles: per character or shared, and per talent group (dual spec).
 
 
@@ -84,7 +84,7 @@ COMMANDS
   /hek move, /hek lock  unlock the displays to move them, lock them again
   /hek enable, disable  turn the addon on or off
   /hek set              your class options and toggles (e.g. /hek set cooldowns on)
-  /hek priority         show or change the active priority
+  /hek priority         show or change the rotation
   /hek profile          show or change the active profile
 
 
@@ -94,6 +94,9 @@ NOTES FOR 3.3.5
   - Haste is your haste rating plus the common haste buffs.
   - Boss fights are detected from the boss frames.
   - Shaman weapon imbues are read from the weapon tooltip (English client).
+  - Shaman options (/hek > Shaman, or the minimap button menu): Chain Lightning on one
+    enemy (on), Thunderstorm (off) and Fire Nova (on). Without its glyph, Thunderstorm
+    knocks enemies back.
   - Retail-only options (covenants, nameplate detection, SpellFlash) are hidden.
 
   Settings are saved in WTF\Account\<ACCOUNT>\SavedVariables\Hekili.lua

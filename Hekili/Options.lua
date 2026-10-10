@@ -1437,21 +1437,10 @@ do
 
         local fancyName
 
-        if name == "Multi" then fancyName = AtlasToString( "auctionhouse-icon-favorite" ) .. " Multiple"
-        elseif name == "Defensives" then fancyName = AtlasToString( "nameplates-InterruptShield" ) .. " Defensives"
-        elseif name == "Interrupts" then fancyName = AtlasToString( "voicechat-icon-speaker-mute" ) .. " Interrupts"
-        elseif name == "Cooldowns" then fancyName = AtlasToString( "VignetteEventElite" ) .. " Cooldowns"
-        else fancyName = name end
+        -- 3.3.5: no atlas icons, so plain names (the icons left a blank space before them).
+        fancyName = name == "Multi" and "Multiple" or name
 
         local option = {
-            ['btn'..name] = {
-                type = 'execute',
-                name = fancyName,
-                desc = data.desc,
-                order = 10 + pos,
-                func = function () ACD:SelectGroup( "Hekili", "displays", name ) end,
-            },
-
             [name] = {
                 type = 'group',
                 name = function ()
@@ -1538,15 +1527,15 @@ do
                     },
                     main = {
                         type = 'group',
-                        name = "Main",
-                        desc = "Includes display position, icons, primary icon size/shape, etc.",
+                        name = "Icons",
+                        desc = "Number of icons, position and size of the first icon.",
                         order = 1,
 
                         args = {
                             enabled = {
                                 type = "toggle",
                                 name = "Enabled",
-                                desc = "If disabled, this display will not appear under any circumstances.",
+                                desc = "If unchecked, this display is never shown.",
                                 order = 0.5,
                                 hidden = function () return data.name == "Primary" or data.name == "AOE" or data.name == "Cooldowns"  or data.name == "Defensives" or data.name == "Interrupts" end
                             },
@@ -1562,8 +1551,8 @@ do
 
                             numIcons = {
                                 type = 'range',
-                                name = "Icons Shown",
-                                desc = "Specify the number of recommendations to show.  Each icon shows an additional step forward in time.",
+                                name = "Number of Icons",
+                                desc = "How many abilities to show: the next one (large icon), then the ones after it.",
                                 min = 1,
                                 max = 10,
                                 step = 1,
@@ -1633,8 +1622,7 @@ do
                                     x = {
                                         type = "range",
                                         name = "X",
-                                        desc = "Set the horizontal position for this display's primary icon relative to the center of the screen.  Negative " ..
-                                            "values will move the display left; positive values will move it to the right.",
+                                        desc = "Horizontal position of the first icon, from the center of the screen. Negative = left, positive = right. You can also drag the display with /hek move.",
                                         min = -512,
                                         max = 512,
                                         step = 1,
@@ -1650,8 +1638,7 @@ do
                                     y = {
                                         type = "range",
                                         name = "Y",
-                                        desc = "Set the vertical position for this display's primary icon relative to the center of the screen.  Negative " ..
-                                            "values will move the display down; positive values will move it up.",
+                                        desc = "Vertical position of the first icon, from the center of the screen. Negative = down, positive = up. You can also drag the display with /hek move.",
                                         min = -384,
                                         max = 384,
                                         step = 1,
@@ -1668,14 +1655,14 @@ do
 
                             primaryIcon = {
                                 type = "group",
-                                name = "Primary Icon",
+                                name = "First Icon",
                                 inline = true,
                                 order = 15,
                                 args = {
                                     primaryWidth = {
                                         type = "range",
                                         name = "Width",
-                                        desc = "Specify the width of the primary icon for " .. ( name == "Multi" and "each display." or ( "your " .. name .. " Display." ) ),
+                                        desc = "Width of the first icon, in pixels.",
                                         min = 10,
                                         max = 500,
                                         step = 1,
@@ -1687,7 +1674,7 @@ do
                                     primaryHeight = {
                                         type = "range",
                                         name = "Height",
-                                        desc = "Specify the height of the primary icon for " .. ( name == "Multi" and "each display." or ( "your " .. name .. " Display." ) ),
+                                        desc = "Height of the first icon, in pixels.",
                                         min = 10,
                                         max = 500,
                                         step = 1,
@@ -1705,8 +1692,8 @@ do
 
                                     zoom = {
                                         type = "range",
-                                        name = "Icon Zoom",
-                                        desc = "Select the zoom percentage for the icon textures in this display. (Roughly 30% will trim off the default Blizzard borders.)",
+                                        name = "Zoom",
+                                        desc = "Zooms into the icon art. About 30% cuts off the default Blizzard border.",
                                         min = 0,
                                         softMax = 100,
                                         max = 200,
@@ -1719,8 +1706,7 @@ do
                                     keepAspectRatio = {
                                         type = "toggle",
                                         name = "Keep Aspect Ratio",
-                                        desc = "If your primary or queued icons are not square, checking this option will prevent the icon textures from being " ..
-                                            "stretched and distorted, trimming some of the texture instead.",
+                                        desc = "If your icons are not square, the icon art is cropped instead of stretched.",
                                         disabled = function( info, val )
                                             return not ( data.primaryHeight ~= data.primaryWidth or ( data.numIcons > 1 and data.queue.height ~= data.queue.width ) )
                                         end,
@@ -1732,15 +1718,14 @@ do
 
                             advancedFrame = {
                                 type = "group",
-                                name = "Frame Layer",
+                                name = "Layer",
                                 inline = true,
                                 order = 16,
                                 args = {
                                     frameStrata = {
                                         type = "select",
-                                        name = "Strata",
-                                        desc =  "Frame Strata determines which graphical layer that this display is drawn on.\n\n" ..
-                                                "The default layer is |cFFFFD100MEDIUM|r.",
+                                        name = "Frame Strata",
+                                        desc = "The screen layer the display is drawn on: higher layers are drawn over other frames. Default: MEDIUM.",
                                         values = {
                                             "BACKGROUND",
                                             "LOW",
@@ -1757,9 +1742,8 @@ do
 
                                     frameLevel = {
                                         type = "range",
-                                        name = "Level",
-                                        desc = "Frame Level determines the display's position within its current layer.\n\n" ..
-                                                "Default value is |cFFFFD10010|r.",
+                                        name = "Frame Level",
+                                        desc = "Order inside that layer: a higher number is drawn on top. Default: 10.",
                                         min = 1,
                                         max = 10000,
                                         step = 1,
@@ -1773,8 +1757,8 @@ do
 
                     queue = {
                         type = "group",
-                        name = "Queue",
-                        desc = "Includes anchoring, size, shape, and position settings when a display can show more than one icon.",
+                        name = "Next Icons",
+                        desc = "Size and placement of the smaller icons that follow the first one.",
                         order = 2,
                         disabled = function ()
                             return data.numIcons == 1
@@ -1793,13 +1777,13 @@ do
                             iconSizeGroup = {
                                 type = "group",
                                 inline = true,
-                                name = "Icon Size",
+                                name = "Size",
                                 order = 2,
                                 args = {
                                     width = {
                                         type = 'range',
                                         name = 'Width',
-                                        desc = "Select the width of the queued icons.",
+                                        desc = "Width of the next icons.",
                                         min = 10,
                                         max = 500,
                                         step = 1,
@@ -1811,7 +1795,7 @@ do
                                     height = {
                                         type = 'range',
                                         name = 'Height',
-                                        desc = "Select the height of the queued icons.",
+                                        desc = "Height of the next icons.",
                                         min = 10,
                                         max = 500,
                                         step = 1,
@@ -1825,13 +1809,13 @@ do
                             anchorGroup = {
                                 type = "group",
                                 inline = true,
-                                name = "Positioning",
+                                name = "Placement",
                                 order = 3,
                                 args = {
                                     anchor = {
                                         type = 'select',
                                         name = 'Anchor To',
-                                        desc = "Select the point on the primary icon to which the queued icons will attach.",
+                                        desc = "The side of the first icon the next icons start from.",
                                         values = anchorPositions,
                                         width = 1.49,
                                         order = 1,
@@ -1840,7 +1824,7 @@ do
                                     direction = {
                                         type = 'select',
                                         name = 'Grow Direction',
-                                        desc = "Select the direction for the icon queue.",
+                                        desc = "The direction the next icons go.",
                                         values = {
                                             TOP = 'Up',
                                             BOTTOM = 'Down',
@@ -1861,7 +1845,7 @@ do
                                     offsetX = {
                                         type = 'range',
                                         name = 'X Offset',
-                                        desc = 'Specify the horizontal offset (in pixels) for the queue, in relation to the anchor point on the primary icon for this display.  Positive numbers move the queue to the right, negative numbers move it to the left.',
+                                        desc = 'Moves the next icons sideways, in pixels. Positive = right, negative = left.',
                                         min = -100,
                                         max = 500,
                                         step = 1,
@@ -1872,7 +1856,7 @@ do
                                     offsetY = {
                                         type = 'range',
                                         name = 'Y Offset',
-                                        desc = 'Specify the vertical offset (in pixels) for the queue, in relation to the anchor point on the primary icon for this display.  Positive numbers move the queue up, negative numbers move it down.',
+                                        desc = 'Moves the next icons up or down, in pixels. Positive = up, negative = down.',
                                         min = -100,
                                         max = 500,
                                         step = 1,
@@ -1890,7 +1874,7 @@ do
                                     spacing = {
                                         type = 'range',
                                         name = 'Icon Spacing',
-                                        desc = "Select the number of pixels between icons in the queue.",
+                                        desc = "Space between the icons, in pixels.",
                                         softMin = ( data.queue.direction == "LEFT" or data.queue.direction == "RIGHT" ) and -data.queue.width or -data.queue.height,
                                         softMax = ( data.queue.direction == "LEFT" or data.queue.direction == "RIGHT" ) and data.queue.width or data.queue.height,
                                         min = -500,
@@ -1907,15 +1891,15 @@ do
                     visibility = {
                         type = 'group',
                         name = 'Visibility',
-                        desc = "Visibility and transparency settings in PvE / PvP.",
+                        desc = "When the display is shown, and how transparent it is.",
                         order = 3,
 
                         args = {
 
                             advanced = {
                                 type = "toggle",
-                                name = "Advanced",
-                                desc = "If checked, options are provided to fine-tune display visibility and transparency.",
+                                name = "Different Opacity by Situation",
+                                desc = "If checked, set the opacity separately for: in combat, with an enemy targeted, and otherwise. 0 hides the display in that situation.",
                                 width = "full",
                                 order = 1,
                             },
@@ -1943,8 +1927,8 @@ do
                                 args = {
                                     pveAlpha = {
                                         type = "range",
-                                        name = "PvE Alpha",
-                                        desc = "Set the transparency of the display when in PvE environments.  If set to 0, the display will not appear in PvE.",
+                                        name = "Opacity in PvE",
+                                        desc = "1 = fully visible, 0 = hidden (outside battlegrounds and arenas).",
                                         min = 0,
                                         max = 1,
                                         step = 0.01,
@@ -1953,8 +1937,8 @@ do
                                     },
                                     pvpAlpha = {
                                         type = "range",
-                                        name = "PvP Alpha",
-                                        desc = "Set the transparency of the display when in PvP environments.  If set to 0, the display will not appear in PvP.",
+                                        name = "Opacity in PvP",
+                                        desc = "1 = fully visible, 0 = hidden (in battlegrounds and arenas).",
                                         min = 0,
                                         max = 1,
                                         step = 0.01,
@@ -1984,8 +1968,8 @@ do
                                 args = {
                                     always = {
                                         type = "range",
-                                        name = "Default",
-                                        desc = "If non-zero, this display is shown with the specified level of opacity by default.",
+                                        name = "Otherwise",
+                                        desc = "Opacity when none of the other situations apply. 0 = hidden.",
                                         min = 0,
                                         max = 1,
                                         step = 0.01,
@@ -1995,8 +1979,8 @@ do
 
                                     combat = {
                                         type = "range",
-                                        name = "Combat",
-                                        desc = "If non-zero, this display is shown with the specified level of opacity in PvE combat.",
+                                        name = "In Combat",
+                                        desc = "Opacity in combat. 0 = hidden.",
                                         min = 0,
                                         max = 1,
                                         step = 0.01,
@@ -2013,8 +1997,8 @@ do
 
                                     target = {
                                         type = "range",
-                                        name = "Target",
-                                        desc = "If non-zero, this display is shown with the specified level of opacity when you have an attackable PvE target.",
+                                        name = "Enemy Targeted",
+                                        desc = "Opacity when you target an enemy (out of combat). 0 = hidden.",
                                         min = 0,
                                         max = 1,
                                         step = 0.01,
@@ -2024,8 +2008,8 @@ do
 
                                     combatTarget = {
                                         type = "range",
-                                        name = "Combat w/ Target",
-                                        desc = "If non-zero, this display is shown with the specified level of opacity when you are in combat and have an attackable PvE target.",
+                                        name = "In Combat, Enemy Targeted",
+                                        desc = "Opacity in combat with an enemy targeted. 0 = hidden.",
                                         min = 0,
                                         max = 1,
                                         step = 0.01,
@@ -2036,7 +2020,7 @@ do
                                     hideMounted = {
                                         type = "toggle",
                                         name = "Hide When Mounted",
-                                        desc = "If checked, the display will not be visible when you are mounted when out of combat.",
+                                        desc = "If checked, the display is hidden while you are mounted (out of combat).",
                                         width = "full",
                                         order = 0.5,
                                     }
@@ -2064,8 +2048,8 @@ do
                                 args = {
                                     always = {
                                         type = "range",
-                                        name = "Default",
-                                        desc = "If non-zero, this display is shown with the specified level of opacity by default.",
+                                        name = "Otherwise",
+                                        desc = "Opacity when none of the other situations apply. 0 = hidden.",
                                         min = 0,
                                         max = 1,
                                         step = 0.01,
@@ -2075,8 +2059,8 @@ do
 
                                     combat = {
                                         type = "range",
-                                        name = "Combat",
-                                        desc = "If non-zero, this display is shown with the specified level of opacity in PvP combat.",
+                                        name = "In Combat",
+                                        desc = "Opacity in combat. 0 = hidden.",
                                         min = 0,
                                         max = 1,
                                         step = 0.01,
@@ -2093,8 +2077,8 @@ do
 
                                     target = {
                                         type = "range",
-                                        name = "Target",
-                                        desc = "If non-zero, this display is shown with the specified level of opacity when you have an attackable PvP target.",
+                                        name = "Enemy Targeted",
+                                        desc = "Opacity when you target an enemy (out of combat). 0 = hidden.",
                                         min = 0,
                                         max = 1,
                                         step = 0.01,
@@ -2104,8 +2088,8 @@ do
 
                                     combatTarget = {
                                         type = "range",
-                                        name = "Combat w/ Target",
-                                        desc = "If non-zero, this display is shown with the specified level of opacity when you are in combat and have an attackable PvP target.",
+                                        name = "In Combat, Enemy Targeted",
+                                        desc = "Opacity in combat with an enemy targeted. 0 = hidden.",
                                         min = 0,
                                         max = 1,
                                         step = 0.01,
@@ -2116,7 +2100,7 @@ do
                                     hideMounted = {
                                         type = "toggle",
                                         name = "Hide When Mounted",
-                                        desc = "If checked, the display will not be visible when you are mounted unless you are in combat.",
+                                        desc = "If checked, the display is hidden while you are mounted (out of combat).",
                                         width = "full",
                                         order = 0.5,
                                     }
@@ -2128,20 +2112,20 @@ do
                     keybindings = {
                         type = "group",
                         name = "Keybinds",
-                        desc = "Options for keybinding text on displayed icons.",
+                        desc = "The key bound to each ability, shown on its icon.",
                         order = 7,
 
                         args = {
                             enabled = {
                                 type = "toggle",
-                                name = "Enabled",
+                                name = "Show Keybinds",
                                 order = 1,
                                 width = 1.49,
                             },
 
                             queued = {
                                 type = "toggle",
-                                name = "Enabled for Queued Icons",
+                                name = "Also on the Next Icons",
                                 order = 2,
                                 width = 1.49,
                                 disabled = function () return data.keybindings.enabled == false end,
@@ -2189,21 +2173,21 @@ do
                             textStyle = {
                                 type = "group",
                                 inline = true,
-                                name = "Font and Style",
+                                name = "Text",
                                 order = 5,
                                 args = tableCopy( fontElements ),
                             },
 
                             lowercase = {
                                 type = "toggle",
-                                name = "Use Lowercase",
+                                name = "Lowercase",
                                 order = 5.1,
                                 width = "full",
                             },
 
                             separateQueueStyle = {
                                 type = "toggle",
-                                name = "Use Different Settings for Queue",
+                                name = "Different Text on the Next Icons",
                                 order = 6,
                                 width = "full",
                             },
@@ -2211,7 +2195,7 @@ do
                             queuedTextStyle = {
                                 type = "group",
                                 inline = true,
-                                name = "Queued Font and Style",
+                                name = "Text on the Next Icons",
                                 order = 7,
                                 hidden = function () return not data.keybindings.separateQueueStyle end,
                                 args = {
@@ -2260,7 +2244,7 @@ do
 
                             queuedLowercase = {
                                 type = "toggle",
-                                name = "Use Lowercase in Queue",
+                                name = "Lowercase on the Next Icons",
                                 order = 7.1,
                                 width = 1.49,
                                 hidden = function () return not data.keybindings.separateQueueStyle end,
@@ -2269,6 +2253,7 @@ do
                             cPort = {
                                 name = "ConsolePort",
                                 type = "group",
+                                hidden = true, -- 3.3.5: no ConsolePort
                                 inline = true,
                                 order = 4,
                                 args = {
@@ -2300,23 +2285,22 @@ do
                     border = {
                         type = "group",
                         name = "Border",
-                        desc = "Enable/disable or set the color for icon borders.\n\n" ..
-                            "You may want to disable this if you use Masque or other tools to skin your Hekili icons.",
+                        desc = "A thin border around the icons. Turn it off if another addon (such as Masque) already skins them.",
                         order = 4,
 
                         args = {
                             enabled = {
                                 type = "toggle",
-                                name = "Enabled",
-                                desc = "If enabled, each icon in this display will have a thin border.",
+                                name = "Show Border",
+                                desc = "A thin border around each icon.",
                                 order = 1,
                                 width = "full",
                             },
 
                             thickness = {
                                 type = "range",
-                                name = "Border Thickness",
-                                desc = "Determines the thickness (width) of the border.  Default is 1.",
+                                name = "Thickness",
+                                desc = "Border width in pixels. Default: 1.",
                                 softMin = 1,
                                 softMax = 20,
                                 step = 1,
@@ -2326,8 +2310,8 @@ do
 
                             fit = {
                                 type = "toggle",
-                                name = "Border Inside",
-                                desc = "If enabled, when borders are enabled, the button's border will fit inside the button (instead of around it).",
+                                name = "Inside the Icon",
+                                desc = "If checked, the border is drawn inside the icon instead of around it.",
                                 order = 2.5,
                                 width = 1.49
                             },
@@ -2341,8 +2325,8 @@ do
 
                             coloring = {
                                 type = "select",
-                                name = "Coloring Mode",
-                                desc = "Specify whether to use Class or Custom color borders.\n\nClass-colored borders will automatically change to match the class you are playing.",
+                                name = "Color",
+                                desc = "Your class color, or the custom color below.",
                                 width = 1.49,
                                 order = 3,
                                 values = {
@@ -2355,7 +2339,7 @@ do
                             color = {
                                 type = "color",
                                 name = "Custom Color",
-                                desc = "When borders are enabled and the Coloring Mode is set to |cFFFFD100Custom Color|r, the border will use this color.",
+                                desc = "Used when Color is set to Custom Color.",
                                 order = 4,
                                 width = 1.49,
                                 disabled = function () return data.border.enabled == false or data.border.coloring ~= "custom" end,
@@ -2366,13 +2350,13 @@ do
                     range = {
                         type = "group",
                         name = "Range",
-                        desc = "Preferences for range-check warnings, if desired.",
+                        desc = "Red warning when you are out of range.",
                         order = 5,
                         args = {
                             enabled = {
                                 type = "toggle",
-                                name = "Enabled",
-                                desc = "If enabled, the addon will provide a red warning highlight when you are not in range of your enemy.",
+                                name = "Out of Range Warning",
+                                desc = "If checked, icons turn red when you are out of range.",
                                 width = 1.49,
                                 order = 1,
                             },
@@ -2380,10 +2364,7 @@ do
                             type = {
                                 type = "select",
                                 name = 'Range Checking',
-                                desc = "Select the kind of range checking and range coloring to be used by this display.\n\n" ..
-                                    "|cFFFFD100Ability|r - Each ability is highlighted in red if that ability is out of range.\n\n" ..
-                                    "|cFFFFD100Melee|r - All abilities are highlighted in red if you are out of melee range.\n\n" ..
-                                    "|cFFFFD100Exclude|r - If an ability is not in-range, it will not be recommended.",
+                                desc = "|cFFFFD100Ability|r: an icon turns red when that ability is out of range.\n|cFFFFD100Melee|r: every icon turns red when you are out of melee range.\n|cFFFFD100Exclude|r: abilities out of range are skipped instead.",
                                 values = {
                                     ability = "Per Ability",
                                     melee = "Melee Range",
@@ -2399,22 +2380,21 @@ do
                     glow = {
                         type = "group",
                         name = "Glows",
-                        desc = "Preferences for Blizzard action button glows (not SpellFlash).",
+                        desc = "Shows the game's spell glow (procs) on the icons too.",
                         order = 6,
                         args = {
                             enabled = {
                                 type = "toggle",
-                                name = "Enabled",
-                                desc = "If enabled, when the ability for the first icon has an active glow (or overlay), it will also glow in this display.",
+                                name = "Show Glows",
+                                desc = "If checked, the first icon glows when its ability glows on your action bars (a proc).",
                                 width = 1.49,
                                 order = 1,
                             },
 
                             queued = {
                                 type = "toggle",
-                                name = "Enabled for Queued Icons",
-                                desc = "If enabled, abilities that have active glows (or overlays) will also glow in your queue.\n\n" ..
-                                    "This may not be ideal, the glow may no longer be correct by that point in the future.",
+                                name = "Also on the Next Icons",
+                                desc = "If checked, the next icons glow too when their ability glows on your bars (the proc may be gone by then).",
                                 width = 1.49,
                                 order = 2,
                                 disabled = function() return data.glow.enabled == false end,
@@ -2429,8 +2409,8 @@ do
 
                             mode = {
                                 type = "select",
-                                name = "Glow Style",
-                                desc = "Select the glow style for your display.",
+                                name = "Style",
+                                desc = "How the glow looks.",
                                 width = 1,
                                 order = 3,
                                 values = {
@@ -2443,8 +2423,8 @@ do
 
                             coloring = {
                                 type = "select",
-                                name = "Coloring Mode",
-                                desc = "Select the coloring mode for this glow effect.\n\nClass-colored borders will automatically change to match the class you are playing.",
+                                name = "Color",
+                                desc = "The default glow color, your class color, or the custom color below.",
                                 width = 0.99,
                                 order = 4,
                                 values = {
@@ -2457,8 +2437,8 @@ do
 
                             color = {
                                 type = "color",
-                                name = "Glow Color",
-                                desc = "Select the custom glow color for your display.",
+                                name = "Custom Color",
+                                desc = "Used when Color is set to Custom Color.",
                                 width = 0.99,
                                 order = 5,
                                 disabled = function() return data.glow.coloring ~= "custom" end,
@@ -2624,21 +2604,21 @@ do
                     captions = {
                         type = "group",
                         name = "Captions",
-                        desc = "Captions are brief descriptions sometimes (rarely) used in action lists to describe why the action is shown.",
+                        desc = "Short notes some priorities put on an icon to say why it is shown (rarely used).",
                         order = 9,
                         args = {
                             enabled = {
                                 type = "toggle",
-                                name = "Enabled",
-                                desc = "If enabled, when the first ability shown has a descriptive caption, the caption will be shown.",
+                                name = "Show Captions",
+                                desc = "If checked, the first icon shows its caption, when it has one.",
                                 order = 1,
                                 width = 1.49,
                             },
 
                             queued = {
                                 type = "toggle",
-                                name = "Enabled for Queued Icons",
-                                desc = "If enabled, descriptive captions will be shown for queued abilities, if appropriate.",
+                                name = "Also on the Next Icons",
+                                desc = "If checked, the next icons show their captions too.",
                                 order = 2,
                                 width = 1.49,
                                 disabled = function () return data.captions.enabled == false end,
@@ -2710,14 +2690,14 @@ do
 
                     targets = {
                         type = "group",
-                        name = "Targets",
-                        desc = "A target count indicator can be shown on the display's first recommendation.",
+                        name = "Enemy Count",
+                        desc = "The number of enemies counted, shown on the first icon.",
                         order = 10,
                         args = {
                             enabled = {
                                 type = "toggle",
-                                name = "Enabled",
-                                desc = "If enabled, the addon will show the number of active (or virtual) targets for this display.",
+                                name = "Show Enemy Count",
+                                desc = "If checked, the first icon shows how many enemies the addon counts.",
                                 order = 1,
                                 width = "full",
                             },
@@ -2770,23 +2750,22 @@ do
 
                     delays = {
                         type = "group",
-                        name = "Delays",
-                        desc = "When an ability is recommended some time in the future, a colored indicator or countdown timer can " ..
-                            "communicate that there is a delay.",
+                        name = "Waiting",
+                        desc = "What the first icon shows when its ability should be used a little later (a countdown, a dot, a fade).",
                         order = 11,
                         args = {
                             extend = {
                                 type = "toggle",
-                                name = "Extend Spiral",
-                                desc = "If checked, the primary icon's cooldown spiral will continue until the ability should be used.",
+                                name = "Spiral Until Usable",
+                                desc = "If checked, the cooldown spiral on the first icon runs until the ability should be used.",
                                 width = 1.49,
                                 order = 1,
                             },
 
                             fade = {
                                 type = "toggle",
-                                name = "Fade as Unusable",
-                                desc = "Fade the primary icon when you should wait before using the ability, similar to when an ability is lacking required resources.",
+                                name = "Fade While Waiting",
+                                desc = "If checked, the first icon is faded while you should wait before using it.",
                                 width = 1.49,
                                 order = 1.1
                             },
@@ -2800,8 +2779,8 @@ do
 
                             type = {
                                 type = "select",
-                                name = "Indicator",
-                                desc = "Specify the type of indicator to use when you should wait before casting the ability.",
+                                name = "Wait Indicator",
+                                desc = "What to show on the first icon while you should wait: nothing, a countdown or a colored dot.",
                                 values = {
                                     __NA = "No Indicator",
                                     ICON = "Show Icon (Color)",
@@ -2862,21 +2841,21 @@ do
                     indicators = {
                         type = "group",
                         name = "Indicators",
-                        desc = "Indicators are small icons that can indicate target-swapping or (rarely) cancelling auras.",
+                        desc = "Small marks on the icon: switch target, or (rarely) cancel a buff.",
                         order = 11,
                         args = {
                             enabled = {
                                 type = "toggle",
-                                name = "Enabled",
-                                desc = "If enabled, small indicators for target-swapping, aura-cancellation, etc. may appear on your primary icon.",
+                                name = "Show Indicators",
+                                desc = "If checked, the first icon can show a mark when you should switch target or cancel a buff.",
                                 order = 1,
                                 width = 1.49,
                             },
 
                             queued = {
                                 type = "toggle",
-                                name = "Enabled for Queued Icons",
-                                desc = "If enabled, these indicators will appear on queued icons as well as the primary icon, when appropriate.",
+                                name = "Also on the Next Icons",
+                                desc = "If checked, the next icons can show these marks too.",
                                 order = 2,
                                 width = 1.49,
                                 disabled = function () return data.indicators.enabled == false end,
@@ -2943,44 +2922,22 @@ do
             args = {
                 header = {
                     type = "description",
-                    name = "Hekili has up to five built-in displays (identified in blue) that can display " ..
-                        "different kinds of recommendations.  The addons recommendations are based upon the " ..
-                        "Priorities that are generally (but not exclusively) based on SimulationCraft profiles " ..
-                        "so that you can compare your performance to the results of your simulations.",
+                    name = "Pick a display on the left to change its size, position, keybind text, glow and visibility:\n\n" ..
+                        "|cFF00B4FFPrimary|r  your rotation.\n" ..
+                        "|cFF00B4FFAOE|r  the multi-target rotation (Dual and Reactive display modes).\n" ..
+                        "|cFF00B4FFCooldowns|r, |cFF00B4FFDefensives|r, |cFF00B4FFInterrupts|r  shown when that toggle is set to Show Separately.\n\n" ..
+                        "The settings below change the text of every display at once.",
                     fontSize = "medium",
                     width = "full",
                     order = 1,
                 },
 
-                displays = {
-                    type = "header",
-                    name = "Displays",
-                    order = 10,
-                },
 
-
-                nPanelHeader = {
-                    type = "header",
-                    name = "Notification Panel",
-                    order = 950,
-                },
-
-                nPanelBtn = {
-                    type = "execute",
-                    name = "Notification Panel",
-                    desc = "The Notification Panel provides brief updates when settings are changed or " ..
-                        "toggled while in combat.",
-                    func = function ()
-                        ACD:SelectGroup( "Hekili", "displays", "nPanel" )
-                    end,
-                    order = 951,
-                },
 
                 nPanel = {
                     type = "group",
                     name = "|cFF1EFF00Notification Panel|r",
-                    desc = "The Notification Panel provides brief updates when settings are changed or " ..
-                        "toggled while in combat.",
+                    desc = "Short messages (such as \"Cooldowns ON\") shown when you press a toggle key.",
                     order = 952,
                     get = GetNotifOption,
                     set = SetNotifOption,
@@ -3001,9 +2958,7 @@ do
                                 x = {
                                     type = "range",
                                     name = "X",
-                                    desc = "Enter the horizontal position of the notification panel, " ..
-                                        "relative to the center of the screen.  Negative values move the " ..
-                                        "panel left; positive values move the panel right.",
+                                    desc = "Horizontal position of the messages, from the center of the screen. Negative = left, positive = right.",
                                     min = -512,
                                     max = 512,
                                     step = 1,
@@ -3015,9 +2970,7 @@ do
                                 y = {
                                     type = "range",
                                     name = "Y",
-                                    desc = "Enter the vertical position of the notification panel, " ..
-                                        "relative to the center of the screen.  Negative values move the " ..
-                                        "panel down; positive values move the panel up.",
+                                    desc = "Vertical position of the messages, from the center of the screen. Negative = down, positive = up.",
                                     min = -384,
                                     max = 384,
                                     step = 1,
@@ -3071,14 +3024,14 @@ do
 
                 fontHeader = {
                     type = "header",
-                    name = "Fonts",
+                    name = "Text on all displays",
                     order = 960,
                 },
 
                 fontWarn = {
                     type = "description",
-                    name = "Changing the font below will modify |cFFFF0000ALL|r text on all displays.\n" ..
-                            "To modify one bit of text individually, select the Display (at left) and select the appropriate text.",
+                    name = "Changes every text (keybinds, captions, target count...) on every display. " ..
+                            "To change one text only, pick the display on the left.",
                     order = 960.01,
                 },
 
@@ -3177,22 +3130,6 @@ do
                     width = 1.5
                 },
 
-                shareHeader = {
-                    type = "header",
-                    name = "Sharing",
-                    order = 996,
-                },
-
-                shareBtn = {
-                    type = "execute",
-                    name = "Share Styles",
-                    desc = "Your display styles can be shared with other addon users with these export strings.\n\n" ..
-                        "You can also import a shared export string here.",
-                    func = function ()
-                        ACD:SelectGroup( "Hekili", "displays", "shareDisplays" )
-                    end,
-                    order = 998,
-                },
 
                 shareDisplays = {
                     type = "group",
@@ -3610,8 +3547,7 @@ do
             if not data.builtIn then i = i + 1 end
         end
 
-        section.plugins[ "Multi" ] = newDisplayOption( db, "Multi", self.DB.profile.displays[ "Primary" ], 0 )
-        MakeMultiDisplayOption( section.plugins, section.plugins.Multi.Multi.args )
+        -- 3.3.5: the "Multiple" page (every display option a second time) is not built.
 
     end
 end
@@ -3718,16 +3654,14 @@ ns.AbilitySettings = function ()
                 exclude = {
                     type = 'toggle',
                     name = function () return 'Disable ' .. ( ability.item and ability.link or k ) end,
-                    desc = function () return "If checked, this ability will |cFFFF0000NEVER|r be recommended by the addon.  This can cause issues for some classes or " ..
-                        "specializations, if other abilities depend on you using " .. ( ability.item and ability.link or k ) .. "." end,
+                    desc = function () return "If checked, " .. ( ability.item and ability.link or k ) .. " is never recommended (the rotation skips it)." end,
                     width = 'full',
                     order = 1
                 },
                 toggle = {
                     type = 'select',
-                    name = 'Require Active Toggle',
-                    desc = "Specify a required toggle for this action to be used in the addon action list.  When toggled off, abilities are treated " ..
-                        "as unusable and the addon will pretend they are on cooldown (unless specified otherwise).",
+                    name = "Toggle",
+                    desc = "The toggle (Cooldowns, Defensives...) that turns this on and off. While that toggle is off, it is not recommended. None = always allowed; Default = the one it normally uses.",
                     width = 'full',
                     order = 2,
                     values = function ()
@@ -3745,9 +3679,8 @@ ns.AbilitySettings = function ()
                 },
                 clash = {
                     type = 'range',
-                    name = 'Clash Value',
-                    desc = "If set above zero, the addon will pretend " .. k .. " has come off cooldown this much sooner than it actually has.  " ..
-                        "This can be helpful when an ability is very high priority and you want the addon to consider it a bit earlier than it would actually be ready.",
+                    name = "Ready Early (seconds)",
+                    desc = "Treat it as ready this many seconds before its cooldown ends, so it is preferred over abilities that are ready slightly sooner. Negative = later. 0 = off.",
                     width = "full",
                     min = -1.5,
                     max = 1.5,
@@ -4350,8 +4283,7 @@ do
             disabled = {
                 type = "toggle",
                 name = function () return "Disable " .. ( ability.item and ability.link or k ) end,
-                desc = function () return "If checked, this ability will |cffff0000NEVER|r be recommended by the addon.  This can cause " ..
-                    "issues for some specializations, if other abilities depend on you using " .. ( ability.item and ability.link or k ) .. "." end,
+                desc = function () return "If checked, " .. ( ability.item and ability.link or k ) .. " is never recommended (the rotation skips it)." end,
                 width = 1.5,
                 order = 1,
             },
@@ -4359,16 +4291,15 @@ do
             boss = {
                 type = "toggle",
                 name = "Boss Encounter Only",
-                desc = "If checked, the addon will not recommend " .. k .. " unless you are in a boss fight (or encounter).  If left unchecked, " .. k .. " can be recommended in any type of fight.",
+                desc = "If checked, " .. k .. " is only recommended in boss fights.",
                 width = 1.5,
                 order = 1.1,
             },
 
             keybind = {
                 type = "input",
-                name = "Override Keybind Text",
-                desc = "If specified, the addon will show this text in place of the auto-detected keybind text when recommending this ability.  " ..
-                    "This can be helpful if the addon incorrectly detects your keybindings.",
+                name = "Keybind Text",
+                desc = "Text shown on the icon instead of the key found on your action bars. Leave empty to use the key found automatically.",
                 validate = function( info, val )
                     val = val:trim()
                     if val:len() > 20 then return "Keybindings should be no longer than 20 characters in length." end
@@ -4380,9 +4311,8 @@ do
 
             toggle = {
                 type = "select",
-                name = "Require Toggle",
-                desc = "Specify a required toggle for this action to be used in the addon action list.  When toggled off, abilities are treated " ..
-                    "as unusable and the addon will pretend they are on cooldown (unless specified otherwise).",
+                name = "Toggle",
+                desc = "The toggle (Cooldowns, Defensives...) that turns this on and off. While that toggle is off, it is not recommended. None = always allowed; Default = the one it normally uses.",
                 width = 1.5,
                 order = 3,
                 values = function ()
@@ -4407,7 +4337,7 @@ do
             targetMin = {
                 type = "range",
                 name = "Minimum Targets",
-                desc = "If set above zero, the addon will only allow " .. k .. " to be recommended, if there are at least this many detected enemies.  All other action list conditions must also be met.\nSet to zero to ignore.",
+                desc = "Only recommended when at least this many enemies are counted. 0 = no limit.",
                 width = 1.5,
                 min = 0,
                 max = 15,
@@ -4418,7 +4348,7 @@ do
             targetMax = {
                 type = "range",
                 name = "Maximum Targets",
-                desc = "If set above zero, the addon will only allow " .. k .. " to be recommended if there are this many detected enemies (or fewer).  All other action list conditions must also be met.\nSet to zero to ignore.",
+                desc = "Only recommended when at most this many enemies are counted. 0 = no limit.",
                 width = 1.5,
                 min = 0,
                 max = 15,
@@ -4428,9 +4358,8 @@ do
 
             clash = {
                 type = "range",
-                name = "Clash",
-                desc = "If set above zero, the addon will pretend " .. k .. " has come off cooldown this much sooner than it actually has.  " ..
-                    "This can be helpful when an ability is very high priority and you want the addon to prefer it over abilities that are available sooner.",
+                name = "Ready Early (seconds)",
+                desc = "Treat it as ready this many seconds before its cooldown ends, so it is preferred over abilities that are ready slightly sooner. Negative = later. 0 = off.",
                 width = 3,
                 min = -1.5,
                 max = 1.5,
@@ -4456,7 +4385,8 @@ do
 
         for k, v in pairs( class.abilityList ) do
             local a = class.abilities[ k ]
-            if a and ( a.id > 0 or a.id < -100 ) and a.id ~= state.cooldown.global_cooldown.id and not ( a.isItem or a.item ) then
+            -- 3.3.5: skip aliases such as [Solo Curse] or [Assigned Aura]: they point to an ability that has its own entry.
+            if a and a.key == k and ( a.id > 0 or a.id < -100 ) and a.id ~= state.cooldown.global_cooldown.id and not ( a.isItem or a.item ) then
                 abilities[ v ] = k
             end
         end
@@ -4480,8 +4410,7 @@ do
                     disabled = {
                         type = "toggle",
                         name = function () return "Disable " .. ( ability.item and ability.link or k ) end,
-                        desc = function () return "If checked, this ability will |cffff0000NEVER|r be recommended by the addon.  This can cause " ..
-                            "issues for some specializations, if other abilities depend on you using " .. ( ability.item and ability.link or k ) .. "." end,
+                        desc = function () return "If checked, " .. ( ability.item and ability.link or k ) .. " is never recommended (the rotation skips it)." end,
                         width = 1,
                         order = 1,
                     },
@@ -4489,16 +4418,15 @@ do
                     boss = {
                         type = "toggle",
                         name = "Boss Encounter Only",
-                        desc = "If checked, the addon will not recommend " .. k .. " unless you are in a boss fight (or encounter).  If left unchecked, " .. k .. " can be recommended in any type of fight.",
+                        desc = "If checked, " .. k .. " is only recommended in boss fights.",
                         width = 1,
                         order = 1.1,
                     },
 
                     toggle = {
                         type = "select",
-                        name = "Require Toggle",
-                        desc = "Specify a required toggle for this action to be used in the addon action list.  When toggled off, abilities are treated " ..
-                            "as unusable and the addon will pretend they are on cooldown (unless specified otherwise).",
+                        name = "Toggle",
+                        desc = "The toggle (Cooldowns, Defensives...) that turns this on and off. While that toggle is off, it is not recommended. None = always allowed; Default = the one it normally uses.",
                         width = 1,
                         order = 1.2,
                         values = function ()
@@ -4530,7 +4458,7 @@ do
                     targetMin = {
                         type = "range",
                         name = "Minimum Targets",
-                        desc = "If set above zero, the addon will only allow " .. k .. " to be recommended, if there are at least this many detected enemies.  All other action list conditions must also be met.\nSet to zero to ignore.",
+                        desc = "Only recommended when at least this many enemies are counted. 0 = no limit.",
                         width = 1,
                         min = 0,
                         max = 15,
@@ -4541,7 +4469,7 @@ do
                     targetMax = {
                         type = "range",
                         name = "Maximum Targets",
-                        desc = "If set above zero, the addon will only allow " .. k .. " to be recommended if there are this many detected enemies (or fewer).  All other action list conditions must also be met.\nSet to zero to ignore.",
+                        desc = "Only recommended when at most this many enemies are counted. 0 = no limit.",
                         width = 1,
                         min = 0,
                         max = 15,
@@ -4551,9 +4479,8 @@ do
 
                     clash = {
                         type = "range",
-                        name = "Clash",
-                        desc = "If set above zero, the addon will pretend " .. k .. " has come off cooldown this much sooner than it actually has.  " ..
-                            "This can be helpful when an ability is very high priority and you want the addon to prefer it over abilities that are available sooner.",
+                        name = "Ready Early (seconds)",
+                        desc = "Treat it as ready this many seconds before its cooldown ends, so it is preferred over abilities that are ready slightly sooner. Negative = later. 0 = off.",
                         width = 1,
                         min = -1.5,
                         max = 1.5,
@@ -4571,8 +4498,7 @@ do
                     keybind = {
                         type = "input",
                         name = "Keybind Text",
-                        desc = "If specified, the addon will show this text in place of the auto-detected keybind text when recommending this ability.  " ..
-                            "This can be helpful if the addon incorrectly detects your keybindings.",
+                        desc = "Text shown on the icon instead of the key found on your action bars. Leave empty to use the key found automatically.",
                         validate = function( info, val )
                             val = val:trim()
                             if val:len() > 6 then return "Keybindings should be no longer than 6 characters in length." end
@@ -4585,8 +4511,7 @@ do
                     noIcon = {
                         type = "input",
                         name = "Icon Replacement",
-                        desc = "If specified, the addon will attempt to load this texture instead of the default icon.  This can be a texture ID or a path to a texture file.\n\n" ..
-                            "Leave blank and press Enter to reset to the default icon.",
+                        desc = "A texture path to show instead of the normal icon (for example Interface\Icons\Spell_Nature_Lightning). Leave empty and press Enter to use the normal icon.",
                         icon = function()
                             local options = Hekili:GetActiveSpecOption( "abilities" )
                             return options and options[ v ] and options[ v ].icon or nil
@@ -4615,8 +4540,7 @@ do
                     hasIcon = {
                         type = "input",
                         name = "Icon Replacement",
-                        desc = "If specified, the addon will attempt to load this texture instead of the default icon.  This can be a texture ID or a path to a texture file.\n\n" ..
-                            "Leave blank and press Enter to reset to the default icon.",
+                        desc = "A texture path to show instead of the normal icon (for example Interface\Icons\Spell_Nature_Lightning). Leave empty and press Enter to use the normal icon.",
                         icon = function()
                             local options = Hekili:GetActiveSpecOption( "abilities" )
                             return options and options[ v ] and options[ v ].icon or nil
@@ -4690,8 +4614,7 @@ do
             disabled = {
                 type = "toggle",
                 name = function () return "Disable " .. ( ability.item and ability.link or k ) end,
-                desc = function () return "If checked, this ability will |cffff0000NEVER|r be recommended by the addon.  This can cause " ..
-                    "issues for some specializations, if other abilities depend on you using " .. ( ability.item and ability.link or k ) .. "." end,
+                desc = function () return "If checked, " .. ( ability.item and ability.link or k ) .. " is never recommended (the rotation skips it)." end,
                 width = 1.5,
                 order = 1,
             },
@@ -4699,16 +4622,15 @@ do
             boss = {
                 type = "toggle",
                 name = "Boss Encounter Only",
-                desc = "If checked, the addon will not recommend " .. k .. " via [Use Items] unless you are in a boss fight (or encounter).  If left unchecked, " .. k .. " can be recommended in any type of fight.",
+                desc = "If checked, " .. k .. " is only recommended in boss fights.",
                 width = 1.5,
                 order = 1.1,
             },
 
             keybind = {
                 type = "input",
-                name = "Override Keybind Text",
-                desc = "If specified, the addon will show this text in place of the auto-detected keybind text when recommending this ability.  " ..
-                    "This can be helpful if the addon incorrectly detects your keybindings.",
+                name = "Keybind Text",
+                desc = "Text shown on the icon instead of the key found on your action bars. Leave empty to use the key found automatically.",
                 validate = function( info, val )
                     val = val:trim()
                     if val:len() > 6 then return "Keybindings should be no longer than 6 characters in length." end
@@ -4720,9 +4642,8 @@ do
 
             toggle = {
                 type = "select",
-                name = "Require Toggle",
-                desc = "Specify a required toggle for this action to be used in the addon action list.  When toggled off, abilities are treated " ..
-                    "as unusable and the addon will pretend they are on cooldown (unless specified otherwise).",
+                name = "Toggle",
+                desc = "The toggle (Cooldowns, Defensives...) that turns this on and off. While that toggle is off, it is not recommended. None = always allowed; Default = the one it normally uses.",
                 width = 1.5,
                 order = 3,
                 values = function ()
@@ -4743,9 +4664,8 @@ do
 
             --[[ clash = {
                 type = "range",
-                name = "Clash",
-                desc = "If set above zero, the addon will pretend " .. k .. " has come off cooldown this much sooner than it actually has.  " ..
-                    "This can be helpful when an ability is very high priority and you want the addon to prefer it over abilities that are available sooner.",
+                name = "Ready Early (seconds)",
+                desc = "Treat it as ready this many seconds before its cooldown ends, so it is preferred over abilities that are ready slightly sooner. Negative = later. 0 = off.",
                 width = "full",
                 min = -1.5,
                 max = 1.5,
@@ -4756,7 +4676,7 @@ do
             targetMin = {
                 type = "range",
                 name = "Minimum Targets",
-                desc = "If set above zero, the addon will only allow " .. k .. " to be recommended via [Use Items] if there are at least this many detected enemies.\nSet to zero to ignore.",
+                desc = "Only recommended when at least this many enemies are counted. 0 = no limit.",
                 width = 1.5,
                 min = 0,
                 max = 15,
@@ -4767,7 +4687,7 @@ do
             targetMax = {
                 type = "range",
                 name = "Maximum Targets",
-                desc = "If set above zero, the addon will only allow " .. k .. " to be recommended via [Use Items] if there are this many detected enemies (or fewer).\nSet to zero to ignore.",
+                desc = "Only recommended when at most this many enemies are counted. 0 = no limit.",
                 width = 1.5,
                 min = 0,
                 max = 15,
@@ -4826,8 +4746,7 @@ do
                     disabled = {
                         type = "toggle",
                         name = function () return "Disable " .. ( ability.item and ability.link or k ) end,
-                        desc = function () return "If checked, this ability will |cffff0000NEVER|r be recommended by the addon.  This can cause " ..
-                            "issues for some specializations, if other abilities depend on you using " .. ( ability.item and ability.link or k ) .. "." end,
+                        desc = function () return "If checked, " .. ( ability.item and ability.link or k ) .. " is never recommended (the rotation skips it)." end,
                         width = 1.5,
                         order = 1.05,
                     },
@@ -4835,16 +4754,15 @@ do
                     boss = {
                         type = "toggle",
                         name = "Boss Encounter Only",
-                        desc = "If checked, the addon will not recommend " .. ( ability.item and ability.link or k ) .. " via [Use Items] unless you are in a boss fight (or encounter).  If left unchecked, " .. ( ability.item and ability.link or k ) .. " can be recommended in any type of fight.",
+                        desc = "If checked, " .. ( ability.item and ability.link or k ) .. " is only recommended in boss fights.",
                         width = 1.5,
                         order = 1.1,
                     },
 
                     keybind = {
                         type = "input",
-                        name = "Override Keybind Text",
-                        desc = "If specified, the addon will show this text in place of the auto-detected keybind text when recommending this ability.  " ..
-                            "This can be helpful if the addon incorrectly detects your keybindings.",
+                        name = "Keybind Text",
+                        desc = "Text shown on the icon instead of the key found on your action bars. Leave empty to use the key found automatically.",
                         validate = function( info, val )
                             val = val:trim()
                             if val:len() > 6 then return "Keybindings should be no longer than 6 characters in length." end
@@ -4856,9 +4774,8 @@ do
 
                     toggle = {
                         type = "select",
-                        name = "Require Toggle",
-                        desc = "Specify a required toggle for this action to be used in the addon action list.  When toggled off, abilities are treated " ..
-                            "as unusable and the addon will pretend they are on cooldown (unless specified otherwise).",
+                        name = "Toggle",
+                        desc = "The toggle (Cooldowns, Defensives...) that turns this on and off. While that toggle is off, it is not recommended. None = always allowed; Default = the one it normally uses.",
                         width = 1.5,
                         order = 3,
                         values = function ()
@@ -4879,9 +4796,8 @@ do
 
                     --[[ clash = {
                         type = "range",
-                        name = "Clash",
-                        desc = "If set above zero, the addon will pretend " .. k .. " has come off cooldown this much sooner than it actually has.  " ..
-                            "This can be helpful when an ability is very high priority and you want the addon to prefer it over abilities that are available sooner.",
+                        name = "Ready Early (seconds)",
+                        desc = "Treat it as ready this many seconds before its cooldown ends, so it is preferred over abilities that are ready slightly sooner. Negative = later. 0 = off.",
                         width = "full",
                         min = -1.5,
                         max = 1.5,
@@ -4892,7 +4808,7 @@ do
                     targetMin = {
                         type = "range",
                         name = "Minimum Targets",
-                        desc = "If set above zero, the addon will only allow " .. ( ability.item and ability.link or k ) .. " to be recommended via [Use Items] if there are at least this many detected enemies.\nSet to zero to ignore.",
+                        desc = "Only recommended when at least this many enemies are counted. 0 = no limit.",
                         width = 1.5,
                         min = 0,
                         max = 15,
@@ -4903,7 +4819,7 @@ do
                     targetMax = {
                         type = "range",
                         name = "Maximum Targets",
-                        desc = "If set above zero, the addon will only allow " .. ( ability.item and ability.link or k ) .. " to be recommended via [Use Items] if there are this many detected enemies (or fewer).\nSet to zero to ignore.",
+                        desc = "Only recommended when at most this many enemies are counted. 0 = no limit.",
                         width = 1.5,
                         min = 0,
                         max = 15,
@@ -5269,8 +5185,8 @@ do
                             args = {
                                 enabled = {
                                     type = "toggle",
-                                    name = "Enabled",
-                                    desc = "If checked, the addon will provide priority recommendations for " .. name .. " based on the selected priority list.",
+                                    name = "Recommendations for " .. name,
+                                    desc = "If unchecked, the addon shows nothing for this class.",
                                     order = 0,
                                     width = "full",
                                 },
@@ -5288,8 +5204,8 @@ do
 
                                 package = {
                                     type = "select",
-                                    name = "Active Priority",
-                                    desc = "The addon will use the selected package when making its priority recommendations.",
+                                    name = "Rotation",
+                                    desc = "The rotation (priority list) the recommendations come from. With Pick Rotation by Talents checked, it is chosen for you.",
                                     order = 1,
                                     width = 2.85,
                                     values = function( info, val )
@@ -5311,7 +5227,7 @@ do
                                 openPackage = {
                                     type = 'execute',
                                     name = "",
-                                    desc = "Open and view this priority pack and its action lists.",
+                                    desc = "Open this rotation's action lists (Priorities page).",
                                     image = GetAtlasFile( "poi-door-right" ),
                                     imageCoords = GetAtlasCoords( "poi-door-right" ),
                                     imageHeight = 24,
@@ -5336,8 +5252,8 @@ do
 
                                 usePackSelector = {
                                     type = "toggle",
-                                    name = "Use Priority Selector",
-                                    desc = "If checked, the addon may automatically swap your current priority pack based on specific conditions (like your current specialization, talents, or glyphs).",
+                                    name = "Pick Rotation by Talents",
+                                    desc = "If checked, the rotation follows the talent tree with the most points, as set below.",
                                     order = 2,
                                     width = "full",
                                     hidden = function() return #class.specs[ id ].packSelectors == 0 end,
@@ -5345,7 +5261,7 @@ do
 
                                 packageSelectors = {
                                     type = "group",
-                                    name = "Priority Selectors",
+                                    name = "Rotation for Each Talent Tree",
                                     inline = true,
                                     order = 2.1,
                                     width = "full",
@@ -5358,8 +5274,8 @@ do
 
                                 potion = {
                                     type = "select",
-                                    name = "Default Potion",
-                                    desc = "When recommending a potion, the addon will suggest this potion unless the action list specifies otherwise.",
+                                    name = "Potion",
+                                    desc = "The potion recommended when Potions are on (Toggles).",
                                     order = 3,
                                     width = "full",
                                     values = function ()
@@ -5381,13 +5297,13 @@ do
                         targets = {
                             type = "group",
                             name = "Targeting",
-                            desc = "Settings related to how enemies are identified and counted by the addon.",
+                            desc = "How enemies are counted (single target or AOE).",
                             order = 3,
                             args = {
                                 countInfo = {
                                     type = "description",
-                                    name = "On WoW 3.3.5a, enemies are counted from the combat log: the ones you hit, or that hit you, in the last few seconds. " ..
-                                        "(Nameplates cannot be read by addons on 3.3.5, so nameplate detection is not available.)\n",
+                                    name = "Enemies are counted from the combat log: the ones you damaged in the last few seconds (as a tank, also the ones hitting you). " ..
+                                        "Addons cannot read nameplates on 3.3.5, so enemies you have not touched yet are not counted.\n",
                                     fontSize = "medium",
                                     width = "full",
                                     order = 0.5,
@@ -5529,10 +5445,8 @@ do
 
                                 damageDots = {
                                     type = "toggle",
-                                    name = "Detect Dotted Enemies",
-                                    desc = "When checked, the addon will continue to count enemies who are taking damage from your damage over time effects (bleeds, etc.), even if they are not nearby or taking other damage from you.\n\n" ..
-                                        "This may not be ideal for melee specializations, as enemies may wander away after you've applied your dots/bleeds.  If used with |cFFFFD100Use Nameplate Detection|r, dotted enemies that are no longer in melee range will be filtered.\n\n" ..
-                                        "For ranged specializations with damage over time effects, this should be enabled.",
+                                    name = "Count Enemies With My DoTs",
+                                    desc = "If checked, an enemy taking damage from your damage-over-time spells (or bleeds) keeps being counted, even if you do not hit it otherwise.",
                                     width = 1.49,
                                     hidden = false, -- 3.3.5: damage detection is always on
                                     order = 5,
@@ -5540,9 +5454,8 @@ do
 
                                 damagePets = {
                                     type = "toggle",
-                                    name = "Detect Enemies Damaged by Pets",
-                                    desc = "If checked, the addon will count enemies that your pets or minions have hit (or hit you) within the past several seconds.  " ..
-                                        "This may give misleading target counts if your pet/minions are spread out over the battlefield.",
+                                    name = "Count Enemies Hit by My Pets",
+                                    desc = "If checked, enemies hit by your pets, totems and guardians are counted too. Your main pet's damage is always counted.",
                                     width = 1.49,
                                     hidden = false, -- 3.3.5: damage detection is always on
                                     order = 5.1
@@ -5562,9 +5475,8 @@ do
 
                                 damageExpiration = {
                                     type = "range",
-                                    name = "Damage Detection Timeout",
-                                    desc = "When |cFFFFD100Detect Damaged Enemies|r is checked, the addon will remember enemies until they have been ignored/undamaged for this amount of time.  " ..
-                                        "Enemies will also be forgotten if they die or despawn.  This is helpful when enemies spread out or move out of range.",
+                                    name = "Forget Enemies After (seconds)",
+                                    desc = "An enemy stops being counted when it has not been damaged for this long (or when it dies).",
                                     width = "full",
                                     softMin = 3,
                                     min = 1,
@@ -5585,19 +5497,15 @@ do
                                 cycle = {
                                     type = "toggle",
                                     name = "Recommend Target Swaps",
-                                    desc = "When target swapping is enabled, the addon may show an icon (|T" .. ns.AddonPath .. "Textures\\Cycle:0|t) when you should use an ability on a different target.  " ..
-                                        "This works well for some specs that simply want to apply a debuff to another target (like Windwalker), but can be less-effective for specializations that are concerned with " ..
-                                        "maintaining dots/debuffs based on their durations (like Affliction).  This feature is targeted for improvement in a future update.",
+                                    desc = "If checked, a mark (|T" .. ns.AddonPath .. "Textures\\Cycle:0|t) can appear on the icon when you should use the ability on another enemy (to spread a DoT or debuff).",
                                     width = "full",
                                     order = 8
                                 },
 
                                 cycle_min = {
                                     type = "range",
-                                    name = "Minimum Target Time-to-Die",
-                                    desc = "When |cffffd100Recommend Target Swaps|r is checked, this value determines which targets are counted for target swapping purposes.  If set to 5, the addon will " ..
-                                            "not recommend swapping to a target that will die in fewer than 5 seconds.  This can be beneficial to avoid applying damage-over-time effects to a target that will die " ..
-                                            "too quickly to be damaged by them.\n\nSet to 0 to count all detected targets.",
+                                    name = "Ignore Enemies Dying Within (seconds)",
+                                    desc = "Target swaps are not suggested toward an enemy expected to die sooner than this. 0 = no limit.",
                                     width = "full",
                                     min = 0,
                                     max = 15,
@@ -5608,8 +5516,8 @@ do
 
                                 aoe = {
                                     type = "range",
-                                    name = "AOE Display:  Minimum Targets",
-                                    desc = "When the AOE Display is shown, its recommendations will be made assuming this many targets are available.",
+                                    name = "Enemies Needed for AOE",
+                                    desc = "The number of enemies the AOE display (and the AOE, Dual and Reactive modes) plans for. Reactive mode shows the AOE display from this number.",
                                     width = "full",
                                     min = 2,
                                     max = 10,
@@ -5622,13 +5530,14 @@ do
                         toggles = {
                             type = "group",
                             name = "Toggles",
-                            desc = "Specify which abilities are controlled by each toggle keybind for this specialization.",
+                            desc = "Which abilities each toggle (Cooldowns, Defensives...) turns on and off.",
+                            -- 3.3.5: same setting as Abilities > (ability) > Toggle; kept in one place only.
+                            hidden = true,
                             order = 2,
                             args = {
                                 toggleDesc = {
                                     type = "description",
-                                    name = "This section shows which Abilities are enabled/disabled when you toggle each category when in this specialization.  Gear and Items can be adjusted via their own section (left).\n\n" ..
-                                        "Removing an ability from its toggle leaves it |cFF00FF00ENABLED|r regardless of whether the toggle is active.",
+                                    name = "The abilities each toggle turns on and off. An ability removed from its toggle is always allowed. Trinkets and other items are in Gear and Items.",
                                     fontSize = "medium",
                                     order = 1,
                                     width = "full",
@@ -5646,14 +5555,13 @@ do
 
                         performance = {
                             type = "group",
-                            name = NewFeature .. " Performance",
+                            name = "Performance",
                             order = 10,
                             args = {
                                 throttleRefresh = {
                                     type = "toggle",
-                                    name = NewFeature .. " Throttle Updates",
-                                    desc = "By default, the addon will update its recommendations immediately following |cffff0000critical|r combat events, within |cffffd1000.1|rs of routine combat events, or every |cffffd1000.5|rs.\n" ..
-                                        "If |cffffd100Throttle Updates|r is checked, you can specify the |cffffd100Combat Refresh Interval|r and |cff00ff00Regular Refresh Interval|r for this specialization.",
+                                    name = "Limit Update Rate",
+                                    desc = "By default the addon updates right after important combat events, within 0.1 s of other combat events, and every 0.5 s otherwise. Check this to set slower rates below (less CPU, slower updates).",
                                     order = 1,
                                     width = "full",
                                 },
@@ -5667,10 +5575,8 @@ do
 
                                 regularRefresh = {
                                     type = "range",
-                                    name = NewFeature .. " Regular Refresh Interval",
-                                    desc = "In the absence of combat events, this addon will allow itself to update according to the specified interval.  Specifying a higher value may reduce CPU usage but will result in slower updates, though " ..
-                                        "combat events will always force the addon to update more quickly.\n\nIf set to |cffffd1001.0|rs, the addon will not provide new updates until 1 second after its last update (unless forced by a combat event).\n\n" ..
-                                        "Default value:  |cffffd1000.5|rs.",
+                                    name = "Update Every (seconds)",
+                                    desc = "How often the addon updates when nothing happens in combat. Default: 0.5.",
                                     order = 1.1,
                                     width = 1.5,
                                     min = 0.05,
@@ -5681,10 +5587,8 @@ do
 
                                 combatRefresh = {
                                     type = "range",
-                                    name = NewFeature .. " Combat Refresh Interval",
-                                    desc = "When routine combat events occur, the addon will update more frequently than its Regular Refresh Interval.  Specifying a higher value may reduce CPU usage but will result in slower updates, though " ..
-                                        "critical combat events will always force the addon to update more quickly.\n\nIf set to |cffffd1000.2|rs, the addon will not provide new updates until 0.2 seconds after its last update (unless forced by a critical combat event).\n\n" ..
-                                        "Default value:  |cffffd1000.1|rs.",
+                                    name = "Update After Combat Events (seconds)",
+                                    desc = "The shortest time between two updates after combat events. Default: 0.1.",
                                     order = 1.2,
                                     width = 1.5,
                                     min = 0.05,
@@ -5702,22 +5606,16 @@ do
 
                                 throttleTime = {
                                     type = "toggle",
-                                    name = NewFeature .. " Throttle Time",
-                                    desc = "By default, when the addon needs to generate new recommendations, it will use up to |cffffd10010ms|r per frame or up to half a frame, whichever is lower.  If you get 60 FPS, that is 1 second / 60 frames, which equals equals 16.67ms.  " ..
-                                        "Half of 16.67 is ~|cffffd1008ms|r, so the addon could use up to ~8ms per frame until it has successfully updated its recommendations for all visible displays.  If more time is needed, the work will be split across multiple frames.\n\n" ..
-                                        "If you choose to |cffffd100Throttle Time|r, you can specify the |cffffd100Maximum Update Time|r the addon should use per frame.",
+                                    name = "Limit Time per Frame",
+                                    desc = "By default the addon uses up to 10 ms (or half a frame) per frame to update. Check this to set your own limit if you lose FPS.",
                                     order = 2,
                                     width = 1,
                                 },
 
                                 maxTime = {
                                     type = "range",
-                                    name = NewFeature .. " Maximum Update Time (ms)",
-                                    desc = "Specify the maximum amount of time (in milliseconds) that the addon can use |cffffd100per frame|r when updating its recommendations.\n\n" ..
-                                        "If set to |cffffd10010|r, then recommendations should not impact a 100 FPS system (1 second / 100 frames = 10ms).\n" ..
-                                        "If set to |cffffd10016|r, then recommendations should not impact a 60 FPS system (1 second / 60 frames = 16.7ms).\n\n" ..
-                                        "If you set this value too low, the addon can take more frames to update its recommendations and may feel delayed.  " ..
-                                        "If set too high, the addon will do more work each frame, finishing faster but potentially impacting your FPS.  The default value is |cffffd10010ms|r.",
+                                    name = "Maximum Time per Frame (ms)",
+                                    desc = "Lower = smoother FPS but slower updates. Default: 10.",
                                     order = 2.1,
                                     min = 2,
                                     max = 100,
@@ -5744,9 +5642,8 @@ do
 
                                 enhancedRecheck = {
                                     type = "toggle",
-                                    name = "Enhanced Recheck",
-                                    desc = "When the addon cannot recommend an ability at the present time, it rechecks action's conditions at a few points in the future.  If checked, this feature will enable the addon to do additional checking on entries that use the 'variable' feature.  " ..
-                                        "This may use slightly more CPU, but can reduce the likelihood that the addon will fail to make a recommendation.",
+                                    name = "Extra Checks",
+                                    desc = "If checked, the addon checks more often when nothing can be recommended right now. Slightly more CPU, fewer empty icons.",
                                     width = "full",
                                     order = 5,
                                 }
@@ -5759,8 +5656,13 @@ do
                 local specCfg = class.specs[ id ] and class.specs[ id ].settings
                 local specProf = self.DB.profile.specs[ id ]
 
+                local hasPrefs = false
+                for _, option in ipairs( specCfg ) do
+                    if not option.isPackSelector then hasPrefs = true break end
+                end
+
                 if #specCfg > 0 then
-                    options.args.core.plugins.settings.prefSpacer = {
+                    if hasPrefs then options.args.core.plugins.settings.prefSpacer = {
                         type = "description",
                         name = " ",
                         order = 100,
@@ -5769,9 +5671,9 @@ do
 
                     options.args.core.plugins.settings.prefHeader = {
                         type = "header",
-                        name = "Preferences",
+                        name = "Rotation Options",
                         order = 100.1,
-                    }
+                    } end
 
                     for i, option in ipairs( specCfg ) do
                         if option.isPackSelector then
@@ -5793,7 +5695,8 @@ do
                         -- Test Option for Separate Cooldowns
                         noFeignedCooldown = {
                             type = "toggle",
-                            name = NewFeature .. " Cooldown: Show Separately - Use Actual Cooldowns",
+                            name = "Cooldowns display: use real cooldowns",
+                            hidden = true, -- 3.3.5: troubleshooting switch, kept off to keep the settings simple
                             desc = "If checked, when using the Cooldown: Show Separately feature and Cooldowns are enabled, the addon will |cFFFF0000NOT|r pretend your " ..
                                 "cooldown abilities are fully on cooldown.  This may help resolve scenarios where abilities become desynchronized due to behavior differences " ..
                                 "between the Cooldowns display and your other displays.\n\n" ..
@@ -5812,7 +5715,7 @@ do
                         }
                  } )
                 -- 3.3.5: no covenants, so no Covenants toggle list.
-                BuildToggleList( options, id, "interrupts", "Utility / Interrupts" )
+                BuildToggleList( options, id, "interrupts", "Interrupts" )
                 BuildToggleList( options, id, "defensives", "Defensives",   "The defensive toggle is generally intended for tanking specializations, " ..
                                                                             "as you may want to turn on/off recommendations for damage mitigation abilities " ..
                                                                             "for any number of reasons during a fight.  DPS players may want to add their own " ..
@@ -6049,7 +5952,7 @@ do
         local packs = db.args.packs or {
             type = "group",
             name = "Priorities",
-            desc = "Priorities (or action packs) are bundles of action lists used to make recommendations for each specialization.",
+            desc = "The rotations (priority lists) the recommendations come from. For advanced users.",
             get = 'GetPackOption',
             set = 'SetPackOption',
             order = 65,
@@ -6057,9 +5960,10 @@ do
             args = {
                 packDesc = {
                     type = "description",
-                    name = "Priorities (or action packs) are bundles of action lists used to make recommendations for each specialization.  " ..
-                        "They can be customized and shared.  |cFFFF0000Imported SimulationCraft priorities often require some translation before " ..
-                        "they will work with this addon.  No support is offered for customized or imported priorities.|r",
+                    name = "A priority is the rotation: the ordered list of abilities, with their conditions, that the recommendations come from. " ..
+                        "The built-in ones (in blue) are kept up to date with the addon. To change one, copy it first and edit the copy. " ..
+                        "Which priority your class uses is chosen in your class page (Rotation).\n\n" ..
+                        "|cFFFF0000Changing or importing priorities is for advanced users; problems with edited priorities are not supported.|r",
                     order = 1,
                     fontSize = "medium",
                 },
@@ -6096,7 +6000,7 @@ do
 
                 createNewPack = {
                     type = "execute",
-                    name = "Create New Pack",
+                    name = "Create Priority",
                     order = 203,
                     disabled = function()
                         return packControl.newPackName == "" or packControl.newPackSpec == ""
@@ -6110,22 +6014,6 @@ do
                     end,
                 },
 
-                shareHeader = {
-                    type = "header",
-                    name = "Sharing",
-                    order = 100,
-                },
-
-                shareBtn = {
-                    type = "execute",
-                    name = "Share Priorities",
-                    desc = "Each Priority can be shared with other addon users with these export strings.\n\n" ..
-                        "You can also import a shared export string here.",
-                    func = function ()
-                        ACD:SelectGroup( "Hekili", "packs", "sharePacks" )
-                    end,
-                    order = 101,
-                },
 
                 sharePacks = {
                     type = "group",
@@ -6415,21 +6303,6 @@ do
 
         for pack, data in orderedPairs( self.DB.profile.packs ) do
             if data.spec and class.specs[ data.spec ] and not data.hidden then
-                packs.plugins.links.packButtons = packs.plugins.links.packButtons or {
-                    type = "header",
-                    name = "Installed Packs",
-                    order = 10,
-                }
-
-                packs.plugins.links[ "btn" .. pack ] = {
-                    type = "execute",
-                    name = pack,
-                    order = 11 + count,
-                    func = function ()
-                        ACD:SelectGroup( "Hekili", "packs", pack )
-                    end,
-                }
-
                 local opts = packs.plugins.packages[ pack ] or {
                     type = "group",
                     name = function ()
@@ -6448,8 +6321,7 @@ do
                                 isBuiltIn = {
                                     type = "description",
                                     name = function ()
-                                        return BlizzBlue .. "This is a default priority package.  It will be automatically updated when the addon is updated.  If you want to customize this priority, " ..
-                                            "make a copy by clicking |T" .. ns.AddonPath .. "Textures\\WhiteCopy:0|t.|r"
+                                        return BlizzBlue .. "This is a built-in priority: it is updated with the addon and cannot be edited. To change it, click the copy button (two pages) next to its name, then edit the copy.|r"
                                     end,
                                     fontSize = "medium",
                                     width = 3,
@@ -6472,6 +6344,7 @@ do
                                         return "Active"
                                     end,
                                     desc = "If checked, the addon's recommendations for this specialization are based on this priority package.",
+                                    hidden = true, -- 3.3.5: chosen in the class page (Rotation), kept in one place only
                                     order = 0.2,
                                     width = 3,
                                     get = function ()
@@ -6684,9 +6557,8 @@ do
 
                         profile = {
                             type = "group",
-                            name = "Profile",
-                            desc = "If this Priority was generated with a SimulationCraft profile, the profile can be stored " ..
-                                "or retrieved here.  The profile can also be re-imported or overwritten with a newer profile.",
+                            name = "SimulationCraft Source",
+                            desc = "The SimulationCraft profile this priority was built from (if any). You can paste a newer one and import it again.",
                             order = 2,
                             args = {
                                 signature = {
@@ -7158,7 +7030,8 @@ do
 
                                                 list_name = {
                                                     type = "select",
-                                                    name = "Action List",
+                                                    name = "List to Run",
+                                                    desc = "The action list this entry runs (Call / Run Action List).",
                                                     values = function ()
                                                         local e = GetListEntry( pack )
                                                         local v = {}
@@ -7925,7 +7798,7 @@ do
             args = {
                 info = {
                     type = "description",
-                    name = "Toggles are keybindings that you can use to direct the addon's recommendations and how they are presented.",
+                    name = "Turn groups of abilities on or off. Each toggle has a checkbox and a key: click the key box, then press the key you want (it works in combat).\n\nTo change which toggle an ability belongs to, open |cFFFFD100Abilities|r (or |cFFFFD100Gear and Items|r), pick it, and set its |cFFFFD100Toggle|r.",
                     order = 0.5,
                     fontSize = "medium",
                 },
@@ -7939,22 +7812,21 @@ do
                         key = {
                             type = "keybinding",
                             name = "Cooldowns",
-                            desc = "Set a key to toggle cooldown recommendations on/off.",
+                            desc = "Key that turns Cooldowns on or off.",
                             order = 1,
                         },
 
                         value = {
                             type = "toggle",
-                            name = "Show Cooldowns",
-                            desc = "If checked, abilities marked as cooldowns can be recommended.",
+                            name = "Cooldowns On",
+                            desc = "If checked, big cooldowns (Bloodlust, Fire Elemental Totem, Icy Veins...) can be recommended.",
                             order = 2,
                         },
 
                         separate = {
                             type = "toggle",
-                            name = NewFeature .. " Show Separately",
-                            desc = "If checked, cooldown abilities will be shown separately in your Cooldowns Display.\n\n" ..
-                                "This is an experimental feature and may not work well for some specializations.",
+                            name = "In Their Own Display",
+                            desc = "If checked, cooldowns are shown in the Cooldowns display instead of in your rotation (Primary display).",
                             order = 3,
                         },
 
@@ -7974,8 +7846,8 @@ do
 
                         override = {
                             type = "toggle",
-                            name = "Bloodlust Override",
-                            desc = "If checked, when Bloodlust (or similar effects) are active, the addon will recommend cooldown abilities even if Show Cooldowns is not checked.",
+                            name = "Always During Bloodlust",
+                            desc = "If checked, cooldowns are recommended while Bloodlust or Heroism is up, even when Cooldowns are off.",
                             order = 4,
                         }
                     }
@@ -8020,24 +7892,21 @@ do
                         key = {
                             type = "keybinding",
                             name = "Defensives",
-                            desc = "Set a key to toggle defensive/mitigation recommendations on/off.\n" ..
-                                "\nThis applies only to tanking specializations.",
+                            desc = "Key that turns Defensives on or off.",
                             order = 1,
                         },
 
                         value = {
                             type = "toggle",
-                            name = "Show Defensives",
-                            desc = "If checked, abilities marked as defensives can be recommended.\n" ..
-                                "\nThis applies only to tanking specializations.",
+                            name = "Defensives On",
+                            desc = "If checked, defensive abilities (mostly for tanks) can be recommended.",
                             order = 2,
                         },
 
                         separate = {
                             type = "toggle",
-                            name = "Show Separately",
-                            desc = "If checked, defensive/mitigation abilities will be shown separately in your Defensives Display.\n" ..
-                                "\nThis applies only to tanking specializations.",
+                            name = "In Their Own Display",
+                            desc = "If checked, defensives are shown in the Defensives display instead of in your rotation.",
                             order = 3,
                         }
                     }
@@ -8052,21 +7921,21 @@ do
                         key = {
                             type = "keybinding",
                             name = "Interrupts",
-                            desc = "Set a key to use for toggling interrupts on/off.",
+                            desc = "Key that turns Interrupts on or off.",
                             order = 1,
                         },
 
                         value = {
                             type = "toggle",
-                            name = "Show Interrupts",
-                            desc = "If checked, abilities marked as interrupts can be recommended.",
+                            name = "Interrupts On",
+                            desc = "If checked, interrupts (and some utility) are recommended when your target casts.",
                             order = 2,
                         },
 
                         separate = {
                             type = "toggle",
-                            name = "Show Separately",
-                            desc = "If checked, interrupt abilities will be shown separately in the Interrupts Display only (if enabled).",
+                            name = "In Their Own Display",
+                            desc = "If checked, interrupts are shown in the Interrupts display instead of in your rotation.",
                             order = 3,
                         }
                     }
@@ -8081,14 +7950,14 @@ do
                         key = {
                             type = "keybinding",
                             name = "Potions",
-                            desc = "Set a key to toggle potion recommendations on/off.",
+                            desc = "Key that turns Potions on or off.",
                             order = 1,
                         },
 
                         value = {
                             type = "toggle",
-                            name = "Show Potions",
-                            desc = "If checked, abilities marked as potions can be recommended.",
+                            name = "Potions On",
+                            desc = "If checked, potions can be recommended (the potion is chosen in your class settings).",
                             order = 2,
                         },
                     }
@@ -8109,21 +7978,21 @@ do
                         key = {
                             type = 'keybinding',
                             name = 'Display Mode',
-                            desc = "Pressing this binding will cycle your Display Mode through the options checked below.",
+                            desc = "Key that switches to the next display mode checked below.",
                             order = 1,
                             width = 1,
                         },
 
                         value = {
                             type = "select",
-                            name = "Current Display Mode",
-                            desc = "Select your current Display Mode.",
+                            name = "Current Mode",
+                            desc = "The display mode in use now.",
                             values = {
                                 automatic = "Automatic",
-                                single = "Single-Target",
-                                aoe = "AOE (Multi-Target)",
-                                dual = "Fixed Dual Display",
-                                reactive = "Reactive Dual Display"
+                                single = "Single Target",
+                                aoe = "AOE",
+                                dual = "Dual",
+                                reactive = "Reactive"
                             },
                             width = 2,
                             order = 1.02,
@@ -8131,7 +8000,7 @@ do
 
                         modeLB2 = {
                             type = "description",
-                            name = "Select the |cFFFFD100Display Modes|r that you wish to use.  Each time you press your |cFFFFD100Display Mode|r keybinding, the addon will switch to the next checked mode.",
+                            name = "Your Display Mode key cycles through the modes checked below.",
                             fontSize = "medium",
                             width = "full",
                             order = 1.03
@@ -8140,25 +8009,24 @@ do
                         automatic = {
                             type = "toggle",
                             name = "Automatic",
-                            desc = "If checked, the Display Mode toggle can select Automatic mode.\n\nThe Primary display shows recommendations based upon the detected number of enemies (based on your specialization's options).",
+                            desc = "The Primary display follows the number of enemies counted: single target or AOE by itself.",
                             width = 1.5,
                             order = 1.1,
                         },
 
                         single = {
                             type = "toggle",
-                            name = "Single-Target",
-                            desc = "If checked, the Display Mode toggle can select Single-Target mode.\n\nThe Primary display shows recommendations as though you have one target (even if more targets are detected).",
+                            name = "Single Target",
+                            desc = "The Primary display always assumes one enemy.",
                             width = 1.5,
                             order = 1.2,
                         },
 
                         aoe = {
                             type = "toggle",
-                            name = "AOE (Multi-Target)",
+                            name = "AOE",
                             desc = function ()
-                                return format( "If checked, the Display Mode toggle can select AOE mode.\n\nThe Primary display shows recommendations as though you have at least |cFFFFD100%d|r targets (even if fewer are detected).\n\n" ..
-                                                "The number of targets is set in your specialization's options.", self.DB.profile.specs[ state.spec.id ].aoe or 3 )
+                                return format( "The Primary display always assumes at least |cFFFFD100%d|r enemies (set in your class settings, Targeting).", self.DB.profile.specs[ state.spec.id ].aoe or 3 )
                             end,
                             width = 1.5,
                             order = 1.3,
@@ -8166,10 +8034,9 @@ do
 
                         dual = {
                             type = "toggle",
-                            name = "Fixed Dual Display",
+                            name = "Dual",
                             desc = function ()
-                                return format( "If checked, the Display Mode toggle can select Dual Display mode.\n\nThe Primary display shows single-target recommendations and the AOE display shows recommendations for |cFFFFD100%d|r or more targets (even if fewer are detected).\n\n" ..
-                                                "The number of AOE targets is set in your specialization's options.", self.DB.profile.specs[ state.spec.id ].aoe or 3 )
+                                return format( "Two displays: Primary for one enemy, AOE for |cFFFFD100%d|r or more, both always shown.", self.DB.profile.specs[ state.spec.id ].aoe or 3 )
                             end,
                             width = 1.5,
                             order = 1.4,
@@ -8177,9 +8044,9 @@ do
 
                         reactive = {
                             type = "toggle",
-                            name = "Reactive Dual Display",
+                            name = "Reactive",
                             desc = function ()
-                                return format( "If checked, the Display Mode toggle can select Reactive mode.\n\nThe Primary display shows single-target recommendations, while the AOE display remains hidden until/unless |cFFFFD100%d|r or more targets are detected.", self.DB.profile.specs[ state.spec.id ].aoe or 3 )
+                                return format( "Primary for one enemy; the AOE display appears when |cFFFFD100%d|r or more enemies are counted.", self.DB.profile.specs[ state.spec.id ].aoe or 3 )
                             end,
                             width = 1.5,
                             order = 1.5,
@@ -8206,7 +8073,7 @@ do
 
                 troubleshooting = {
                     type = "header",
-                    name = "Troubleshooting",
+                    name = "Pause and Snapshot",
                     order = 20,
                 },
 
@@ -8219,14 +8086,13 @@ do
                         key = {
                             type = 'keybinding',
                             name = function () return Hekili.Pause and "Unpause" or "Pause" end,
-                            desc =  "Set a key to pause processing of your action lists. Your current display(s) will freeze, " ..
-                                    "and you can mouseover each icon to see information about the displayed action.\n\n" ..
-                                    "This will also create a Snapshot that can be used for troubleshooting and error reporting.",
+                            desc =  "Key that freezes the displays: hover an icon to see why it is recommended. It also takes a Snapshot (for bug reports).",
                             order = 1,
                         },
                         value = {
                             type = 'toggle',
-                            name = 'Pause',
+                            name = 'Paused',
+                            desc = "If checked, the displays are frozen (same as pressing the Pause key).",
                             order = 2,
                         },
                     }
@@ -8241,7 +8107,7 @@ do
                         key = {
                             type = 'keybinding',
                             name = 'Snapshot',
-                            desc = "Set a key to make a snapshot (without pausing) that can be viewed on the Snapshots tab.  This can be useful information for testing and debugging.",
+                            desc = "Key that records a Snapshot without pausing (see the Snapshots page; useful for bug reports).",
                             order = 1,
                         },
                     }
@@ -8249,7 +8115,7 @@ do
 
                 customHeader = {
                     type = "header",
-                    name = "Custom",
+                    name = "Custom Toggles",
                     order = 30,
                 },
 
@@ -8262,21 +8128,21 @@ do
                         key = {
                             type = "keybinding",
                             name = "Custom #1",
-                            desc = "Set a key to toggle your first custom set.",
+                            desc = "Key that turns Custom #1 on or off. Put abilities in it from the Abilities page (Toggle).",
                             order = 1,
                         },
 
                         value = {
                             type = "toggle",
-                            name = "Show Custom #1",
-                            desc = "If checked, abilities linked to Custom #1 can be recommended.",
+                            name = "Custom #1 On",
+                            desc = "If checked, the abilities put in Custom #1 can be recommended.",
                             order = 2,
                         },
 
                         name = {
                             type = "input",
-                            name = "Custom #1 Name",
-                            desc = "Specify a descriptive name for this custom toggle.",
+                            name = "Name",
+                            desc = "A name for Custom #1 (shown in messages and the minimap menu).",
                             order = 3
                         }
                     }
@@ -8291,21 +8157,21 @@ do
                         key = {
                             type = "keybinding",
                             name = "Custom #2",
-                            desc = "Set a key to toggle your second custom set.",
+                            desc = "Key that turns Custom #2 on or off. Put abilities in it from the Abilities page (Toggle).",
                             order = 1,
                         },
 
                         value = {
                             type = "toggle",
-                            name = "Show Custom #2",
-                            desc = "If checked, abilities linked to Custom #2 can be recommended.",
+                            name = "Custom #2 On",
+                            desc = "If checked, the abilities put in Custom #2 can be recommended.",
                             order = 2,
                         },
 
                         name = {
                             type = "input",
-                            name = "Custom #2 Name",
-                            desc = "Specify a descriptive name for this custom toggle.",
+                            name = "Name",
+                            desc = "A name for Custom #2 (shown in messages and the minimap menu).",
                             order = 3
                         }
                     }
@@ -9092,9 +8958,17 @@ do
             name = "Warnings",
             order = 99,
             args = {
+                errInfo = {
+                    type = "description",
+                    name = "Errors the addon caught by itself (it keeps working). Pick one to see its details, to copy into a bug report.",
+                    fontSize = "medium",
+                    width = "full",
+                    order = 0,
+                },
+
                 errName = {
                     type = "select",
-                    name = "Warning Identifier",
+                    name = "Warning",
                     width = "full",
                     order = 1,
 
@@ -9116,7 +8990,7 @@ do
 
                 errorInfo = {
                     type = "input",
-                    name = "Warning Information",
+                    name = "Details",
                     width = "full",
                     multiline = 10,
                     order = 2,
@@ -9316,15 +9190,15 @@ do
                 args = {
                     enabled = {
                         type = "toggle",
-                        name = "Enabled",
-                        desc = "Enables or disables the addon.",
+                        name = "Addon Enabled",
+                        desc = "Turns the whole addon on or off (for every class). Your class can also be turned off alone in its own page.",
                         order = 1
                     },
 
                     minimapIcon = {
                         type = "toggle",
                         name = "Hide Minimap Icon",
-                        desc = "If checked, the minimap icon will be hidden.",
+                        desc = "If checked, the minimap button is hidden. Open the settings with /hek.",
                         order = 2,
                     },
 
@@ -9470,10 +9344,19 @@ do
                 order = 80,
                 childGroups = "select",
                 args = {
+                    pageInfo = {
+                        type = "description",
+                        name = "Pick an ability in the list below to turn it off, limit it to boss fights or to a number of enemies, change its toggle (Cooldowns, Defensives...) or its keybind text.",
+                        fontSize = "medium",
+                        order = 0,
+                        width = "full",
+                    },
+
                     spec = {
                         type = "select",
                         name = "Specialization",
                         desc = "These options apply to your selected specialization.",
+                        hidden = true, -- 3.3.5: one specialization per class
                         order = 0.1,
                         width = "full",
                         set = SetCurrentSpec,
@@ -9492,10 +9375,19 @@ do
                 order = 81,
                 childGroups = "select",
                 args = {
+                    pageInfo = {
+                        type = "description",
+                        name = "Trinkets, potions and other usable items. Pick one in the list below to turn it off, limit it to boss fights or to a number of enemies, change its toggle or its keybind text.",
+                        fontSize = "medium",
+                        order = 0,
+                        width = "full",
+                    },
+
                     spec = {
                         type = "select",
                         name = "Specialization",
                         desc = "These options apply to your selected specialization.",
+                        hidden = true, -- 3.3.5: one specialization per class
                         order = 0.1,
                         width = "full",
                         set = SetCurrentSpec,
@@ -9552,8 +9444,7 @@ do
                     autoSnapshot = {
                         type = "toggle",
                         name = "Auto Snapshot",
-                        desc = "If checked, the addon will automatically create a snapshot whenever it failed to generate a recommendation.\n\n" ..
-                            "This automatic snapshot can only occur once per episode of combat.",
+                        desc = "If checked, a snapshot is saved by itself when the addon cannot recommend anything (once per fight).",
                         order = 1,
                         width = "full",
                     },
@@ -9561,15 +9452,14 @@ do
                     screenshot = {
                         type = "toggle",
                         name = "Take Screenshot",
-                        desc = "If checked, the addon will take a screenshot when you manually create a snapshot.\n\n" ..
-                            "Submitting both with your issue tickets will provide useful information for investigation purposes.",
+                        desc = "If checked, a screenshot is also taken when you press the Snapshot key (useful with a bug report).",
                         order = 2,
                         width = "full",
                     },
 
                     prefHeader = {
                         type = "header",
-                        name = "Snapshots / Troubleshooting",
+                        name = "What Snapshots Are",
                         order = 2.5,
                         width = "full"
                     },
@@ -9577,13 +9467,10 @@ do
                     header = {
                         type = "description",
                         name = function()
-                            return "Snapshots are logs of the addon's decision-making process for a set of recommendations.  If you have questions about -- or disagree with -- the addon's recommendations, " ..
-                            "reviewing a snapshot can help identify what factors led to the specific recommendations that you saw.\n\n" ..
-                            "Snapshots only capture a specific point in time, so snapshots have to be taken at the time you saw the specific recommendations that you are concerned about.  You can generate " ..
-                            "snapshots by using the |cffffd100Snapshot|r binding ( |cffffd100" .. ( Hekili.DB.profile.toggles.snapshot.key or "NOT BOUND" ) .. "|r ) from the Toggles section.\n\n" ..
-                            "You can also freeze the addon's recommendations using the |cffffd100Pause|r binding ( |cffffd100" .. ( Hekili.DB.profile.toggles.pause.key or "NOT BOUND" ) .. "|r ).  Doing so will freeze the addon's recommendations, allowing you to mouseover the display " ..
-                            "and see which conditions were met to display those recommendations.  Press Pause again to unfreeze the addon.\n\n" ..
-                            "Finally, using the settings at the bottom of this panel, you can ask the addon to automatically generate a snapshot for you when no recommendations were able to be made.\n\n"
+                            return "A snapshot records why the addon recommended what it did at one moment. Use it when a recommendation looks wrong.\n\n" ..
+                            "|cffffd100Snapshot|r key ( |cffffd100" .. ( Hekili.DB.profile.toggles.snapshot.key or "not bound" ) .. "|r ): records one now.\n" ..
+                            "|cffffd100Pause|r key ( |cffffd100" .. ( Hekili.DB.profile.toggles.pause.key or "not bound" ) .. "|r ): freezes the displays and records one; hover an icon to see why it is shown. Press it again to resume.\n\n" ..
+                            "Set the keys in Toggles. Pick a snapshot below, then copy its text (Ctrl+A, Ctrl+C) into your bug report.\n\n"
                         end,
                         fontSize = "medium",
                         order = 10,

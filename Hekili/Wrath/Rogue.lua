@@ -1468,40 +1468,14 @@ spec:RegisterAbilities( {
     },
 } )
 
-spec:RegisterSetting("rogue_description", nil, {
-    type = "description",
-    name = "Adjust the settings below according to your playstyle preference. It is always recommended that you use a simulator "..
-        "to determine the optimal values for these settings for your specific character."
-})
-
-spec:RegisterSetting("rogue_description_footer", nil, {
-    type = "description",
-    name = "\n\n"
-})
-
-spec:RegisterSetting("rogue_general", nil, {
-    type = "header",
-    name = "General"
-})
-
-spec:RegisterSetting("rogue_general_description", nil, {
-    type = "description",
-    name = "General settings will change the parameters used in the core rotation.\n\n"
-})
-
 spec:RegisterSetting("maintain_expose", false, {
     type = "toggle",
-    name = "Maintain Expose Armor",
-    desc = "When enabled, expose armor will be recommended when there is no major armor debuff up on the boss",
+    name = "Keep Up Expose Armor",
+    desc = "If checked, Expose Armor is recommended when the target has no major armor debuff (such as Sunder Armor).",
     width = "full",
     set = function( _, val )
         Hekili.DB.profile.specs[ 4 ].settings.maintain_expose = val
     end
-})
-
-spec:RegisterSetting("rogue_general_footer", nil, {
-    type = "description",
-    name = "\n\n"
 })
 
 
