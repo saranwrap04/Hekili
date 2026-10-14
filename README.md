@@ -6,7 +6,7 @@
 
 **Your next ability, on screen, for every class.** A priority helper for World of Warcraft 3.3.5a (AzerothCore servers such as ChromieCraft).
 
-Version 3.3.5-1.2.4 · backport by Saranwrap
+Version 3.3.5-1.2.5 · backport by Saranwrap
 
 > **I am not the original author of this addon.** Hekili is made by **Hekili** and its contributors (https://github.com/Hekili/hekili). This is a backport of its Wrath of the Lich King Classic version to the 3.3.5a client. Please report problems with this version [here](https://github.com/saranwrap04/Hekili/issues), not to Hekili.
 
