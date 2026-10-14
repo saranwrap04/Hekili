@@ -5396,6 +5396,8 @@ do
                                                     n = n + 1
 
                                                     local name, _, tex = GetSpellInfo( spell )
+                                                    tex = tex or "Interface\\Icons\\INV_Misc_QuestionMark"
+                                                    name = name or ( "spell " .. spell )
 
                                                     if n == 1 then
                                                         out = string.format( out, UnitClass( "player" ), tex, name )

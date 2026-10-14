@@ -31,6 +31,19 @@ local GetPlayerAuraBySpellID = _G.GetPlayerAuraBySpellID or function( id ) retur
 
 local GetSpellDescription, GetSpellTexture = _G.GetSpellDescription, _G.GetSpellTexture
 
+-- Icon of a spell, never nil (3.3.5 can return no texture: the list entry then gets a question mark).
+local QUESTION_ICON = "Interface\\Icons\\INV_Misc_QuestionMark"
+local function SpellIcon( id, tex )
+    if tex then return tex end
+    if id and id > 0 then
+        local t = GetSpellTexture( id )
+        if t then return t end
+        t = select( 3, GetSpellInfo( id ) )
+        if t then return t end
+    end
+    return QUESTION_ICON
+end
+
 local GetSpecialization = _G.GetSpecialization or function() return GetActiveTalentGroup() end
 local GetSpecializationInfo = _G.GetSpecializationInfo or function()
     local name, baseName, id = UnitClass( "player" )
@@ -316,7 +329,7 @@ local HekiliSpecMixin = {
 
                     a.desc = GetSpellDescription( a.id )
 
-                    local texture = a.texture or GetSpellTexture( a.id )
+                    local texture = SpellIcon( a.id, a.texture )
 
                     if self.id > 0 then
                         class.auraList[ a.key ] = "|T" .. texture .. ":0|t " .. a.name
@@ -629,8 +642,8 @@ local HekiliSpecMixin = {
                 Hekili.OptionsReady = false
 
                 if not a.unlisted then
-                    class.abilityList[ ability ] = "|T" .. ( a.texture or texture ) .. ":0|t " .. a.link
-                    class.itemList[ a.id ] = "|T" .. a.texture .. ":0|t " .. a.link
+                    class.abilityList[ ability ] = "|T" .. ( a.texture or texture or QUESTION_ICON ) .. ":0|t " .. a.link
+                    class.itemList[ a.id ] = "|T" .. ( a.texture or QUESTION_ICON ) .. ":0|t " .. a.link
 
                     class.abilityByName[ a.name ] = a
                 end
@@ -720,8 +733,8 @@ local HekiliSpecMixin = {
                                 end
 
                                 if not a.unlisted then
-                                    class.abilityList[ ability ] = "|T" .. ( a.texture or texture ) .. ":0|t " .. link
-                                    class.itemList[ item ] = "|T" .. a.texture .. ":0|t " .. link
+                                    class.abilityList[ ability ] = "|T" .. ( a.texture or texture or QUESTION_ICON ) .. ":0|t " .. link
+                                    class.itemList[ item ] = "|T" .. ( a.texture or QUESTION_ICON ) .. ":0|t " .. link
 
                                     class.abilityByName[ a.name ] = a
                                 end
@@ -810,7 +823,7 @@ local HekiliSpecMixin = {
                     a.name = a.name .. " " .. a.suffix
                 end
 
-                local texture = a.texture or GetSpellTexture( a.id )
+                local texture = SpellIcon( a.id, a.texture )
 
                 self.abilities[ a.name ] = self.abilities[ a.name ] or a
                 class.abilities[ a.name ] = class.abilities[ a.name ] or a

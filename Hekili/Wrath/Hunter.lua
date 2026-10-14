@@ -1094,7 +1094,7 @@ spec:RegisterAbilities( {
         gcd = "off",
 
         startsCombat = false, -- it kinda doesn't.
-        -- texture = 132369,
+        texture = "Interface\\Icons\\Ability_Whirlwind",
 
         nobuff = "auto_shot",
 
