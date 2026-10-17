@@ -1,4 +1,4 @@
-HEKILI for WoW 3.3.5a - version 3.3.5-1.2.5
+HEKILI for WoW 3.3.5a - version 3.3.5-1.2.7
 Your next ability, on screen, for every class. Backport by Saranwrap.
 
 I am not the original author of this addon. Hekili is made by Hekili and its contributors

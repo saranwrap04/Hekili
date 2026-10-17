@@ -717,12 +717,15 @@ do
         elapsedTotal = 0
         tries = tries + 1
         for item, callbacks in pairs( waiting ) do
-            if GetItemInfo( item.itemID ) or tries > 20 then
+            if GetItemInfo( item.itemID ) then
                 waiting[ item ] = nil
                 for _, cb in ipairs( callbacks ) do
-                    local ok, err = pcall( cb, GetItemInfo( item.itemID ) ~= nil )
+                    local ok, err = pcall( cb, true )
                     if not ok then geterrorhandler()( err ) end
                 end
+            elseif tries > 20 then
+                -- the server does not know this item: like the game's ItemMixin, never call back
+                waiting[ item ] = nil
             end
         end
         if not next( waiting ) then tries = 0; self:Hide() end

@@ -676,7 +676,7 @@ local HekiliSpecMixin = {
                             end]]
 
                             local name = a.name or actionItem:GetItemName()
-                            local link = a.link or actionItem:GetItemLink()
+                            local link = a.link or actionItem:GetItemLink() or a.name
                             local texture = a.texture or actionItem:GetItemIcon()
 
                             if name then
@@ -689,10 +689,11 @@ local HekiliSpecMixin = {
                                     a.name = a.name .. " " .. a.suffix
                                 end
 
-                                self.abilities[ ability ] = self.abilities[ ability ] or a
-                                self.abilities[ a.name ] = self.abilities[ a.name ] or a
-                                self.abilities[ a.link ] = self.abilities[ a.link ] or a
-                                self.abilities[ data.id ] = self.abilities[ a.link ] or a
+                                -- the item link can still be missing (item not in the cache yet): no nil keys
+                                if ability then self.abilities[ ability ] = self.abilities[ ability ] or a end
+                                if a.name then self.abilities[ a.name ] = self.abilities[ a.name ] or a end
+                                if a.link then self.abilities[ a.link ] = self.abilities[ a.link ] or a end
+                                if data.id then self.abilities[ data.id ] = ( a.link and self.abilities[ a.link ] ) or a end
 
                                 a.itemLoaded = GetTime()
 
@@ -733,8 +734,8 @@ local HekiliSpecMixin = {
                                 end
 
                                 if not a.unlisted then
-                                    class.abilityList[ ability ] = "|T" .. ( a.texture or texture or QUESTION_ICON ) .. ":0|t " .. link
-                                    class.itemList[ item ] = "|T" .. ( a.texture or QUESTION_ICON ) .. ":0|t " .. link
+                                    class.abilityList[ ability ] = "|T" .. ( a.texture or texture or QUESTION_ICON ) .. ":0|t " .. ( link or name )
+                                    class.itemList[ item ] = "|T" .. ( a.texture or QUESTION_ICON ) .. ":0|t " .. ( link or name )
 
                                     class.abilityByName[ a.name ] = a
                                 end
@@ -758,7 +759,7 @@ local HekiliSpecMixin = {
                                         if not copyItem:IsItemEmpty() then
                                             copyItem:ContinueOnItemLoad( function()
                                                 local name = copyItem:GetItemName()
-                                                local link = copyItem:GetItemLink()
+                                                local link = copyItem:GetItemLink() or name
                                                 local texture = copyItem:GetItemIcon()
 
                                                 if name then
@@ -766,7 +767,7 @@ local HekiliSpecMixin = {
                                                     self.abilities[ name ]  = a
 
                                                     if not class.itemList[ id ] then
-                                                        class.itemList[ id ] = "|T" .. ( a.texture or texture ) .. ":0|t " .. link
+                                                        class.itemList[ id ] = "|T" .. ( a.texture or texture or QUESTION_ICON ) .. ":0|t " .. ( link or name )
                                                         addedToItemList = true
                                                     end
                                                 end
